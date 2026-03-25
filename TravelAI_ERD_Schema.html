@@ -1,0 +1,4473 @@
+<!DOCTYPE html>
+<!-- saved from url=(0048)file:///C:/Users/admin/Downloads/erd_schema.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Trip Builder — ERD Schema Reference</title>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
+<link href="./AI Trip Builder — ERD Schema Reference_files/css2" rel="stylesheet">
+<style>
+  :root {
+    --bg:        #0b0e1a;
+    --bg2:       #111526;
+    --bg3:       #181d33;
+    --surface:   #1e2540;
+    --border:    #2a3154;
+    --border2:   #3a4470;
+    --accent:    #5b8cff;
+    --accent2:   #a78bfa;
+    --accent3:   #34d399;
+    --accent4:   #fb923c;
+    --text:      #e8eaf6;
+    --text2:     #8b92b8;
+    --text3:     #555e88;
+    --pk:        #fbbf24;
+    --fk:        #60a5fa;
+    --danger:    #f87171;
+    --radius:    8px;
+    --mono:      'Space Mono', monospace;
+    --sans:      'Syne', sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── Grid noise texture overlay ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      radial-gradient(ellipse 80% 60% at 20% 10%, rgba(91,140,255,0.07) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 80% at 80% 90%, rgba(167,139,250,0.06) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── Layout ── */
+  .layout { display: flex; min-height: 100vh; position: relative; z-index: 1; }
+
+  /* ── Sidebar ── */
+  .sidebar {
+    width: 270px;
+    flex-shrink: 0;
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+  }
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+  .sidebar-header {
+    padding: 24px 20px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .logo-mark {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .logo-icon {
+    width: 32px; height: 32px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+  .logo-text {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: var(--text);
+    text-transform: uppercase;
+  }
+  .logo-sub {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text3);
+    letter-spacing: 0.08em;
+  }
+
+  .search-box {
+    position: relative;
+    margin-top: 2px;
+  }
+  .search-box input {
+    width: 100%;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 8px 10px 8px 32px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text);
+    outline: none;
+    transition: border-color .2s;
+  }
+  .search-box input::placeholder { color: var(--text3); }
+  .search-box input:focus { border-color: var(--accent); }
+  .search-icon {
+    position: absolute;
+    left: 10px; top: 50%;
+    transform: translateY(-50%);
+    color: var(--text3);
+    font-size: 12px;
+    pointer-events: none;
+  }
+
+  .nav-section {
+    padding: 14px 0 4px;
+  }
+  .nav-section-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text3);
+    padding: 0 20px 6px;
+  }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 20px;
+    cursor: pointer;
+    transition: background .15s;
+    border-left: 2px solid transparent;
+    text-decoration: none;
+    color: var(--text2);
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .nav-item:hover { background: var(--bg3); color: var(--text); }
+  .nav-item.active { border-left-color: var(--accent); background: rgba(91,140,255,0.08); color: var(--accent); }
+  .nav-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .nav-count {
+    margin-left: auto;
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--text3);
+    background: var(--bg3);
+    padding: 1px 5px;
+    border-radius: 10px;
+  }
+
+  .sidebar-footer {
+    margin-top: auto;
+    padding: 16px 20px;
+    border-top: 1px solid var(--border);
+  }
+  .stat-row { display: flex; justify-content: space-between; margin-bottom: 8px; }
+  .stat-label { font-family: var(--mono); font-size: 9px; color: var(--text3); text-transform: uppercase; letter-spacing: .08em; }
+  .stat-val { font-family: var(--mono); font-size: 11px; color: var(--accent3); font-weight: 700; }
+
+  /* ── Main content ── */
+  .main { flex: 1; min-width: 0; }
+
+  /* ── Top bar ── */
+  .topbar {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(11,14,26,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 32px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .topbar-title {
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    color: var(--text);
+    flex: 1;
+  }
+  .topbar-title span { color: var(--accent); }
+  .tab-btn {
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 6px 14px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text2);
+    cursor: pointer;
+    transition: all .15s;
+    letter-spacing: .04em;
+  }
+  .tab-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .tab-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+  /* ── Content panels ── */
+  .panel { display: none; padding: 32px; }
+  .panel.active { display: block; }
+
+  /* ── Hero ── */
+  .hero {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 36px 40px;
+    margin-bottom: 32px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: 'ERD';
+    position: absolute;
+    right: 32px; top: 50%;
+    transform: translateY(-50%);
+    font-family: var(--mono);
+    font-size: 96px;
+    font-weight: 700;
+    color: rgba(91,140,255,0.06);
+    letter-spacing: -4px;
+    pointer-events: none;
+    user-select: none;
+  }
+  .hero-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 10px;
+  }
+  .hero-title {
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    margin-bottom: 10px;
+    line-height: 1.15;
+  }
+  .hero-desc {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text2);
+    line-height: 1.8;
+    max-width: 520px;
+  }
+  .hero-stats {
+    display: flex;
+    gap: 32px;
+    margin-top: 24px;
+  }
+  .hero-stat { display: flex; flex-direction: column; gap: 2px; }
+  .hero-stat-num {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--accent);
+    line-height: 1;
+  }
+  .hero-stat-lbl {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: .1em;
+  }
+
+  /* ── Domain grid ── */
+  .domain-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  .domain-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px;
+    cursor: pointer;
+    transition: all .2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .domain-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    border-radius: 10px 10px 0 0;
+    transition: opacity .2s;
+    opacity: 0.6;
+  }
+  .domain-card:hover { border-color: var(--border2); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
+  .domain-card:hover::before { opacity: 1; }
+  .dc-top { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .dc-icon { font-size: 18px; }
+  .dc-name { font-size: 13px; font-weight: 700; color: var(--text); }
+  .dc-tables { font-family: var(--mono); font-size: 9px; color: var(--text3); text-transform: uppercase; letter-spacing: .08em; }
+  .dc-desc { font-family: var(--mono); font-size: 10px; color: var(--text2); line-height: 1.7; }
+  .dc-pills { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 10px; }
+  .dc-pill {
+    font-family: var(--mono);
+    font-size: 9px;
+    padding: 2px 7px;
+    border-radius: 4px;
+    border: 1px solid var(--border2);
+    color: var(--text3);
+  }
+
+  /* ── Table explorer (schema view) ── */
+  .schema-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  .schema-domain-select {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 8px 12px;
+    outline: none;
+    cursor: pointer;
+  }
+  .schema-domain-select:focus { border-color: var(--accent); }
+
+  .domain-section { margin-bottom: 40px; }
+  .domain-section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    border-left: 3px solid;
+  }
+  .ds-icon { font-size: 16px; }
+  .ds-name { font-size: 14px; font-weight: 800; }
+  .ds-count { font-family: var(--mono); font-size: 10px; margin-left: auto; opacity: 0.6; }
+
+  .tables-grid { display: flex; flex-direction: column; gap: 12px; }
+
+  .table-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    transition: border-color .15s;
+  }
+  .table-card:hover { border-color: var(--border2); }
+
+  .table-card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background: var(--bg3);
+    cursor: pointer;
+    border-bottom: 1px solid var(--border);
+    user-select: none;
+  }
+  .tc-name {
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--accent);
+  }
+  .tc-desc { font-size: 11px; color: var(--text2); flex: 1; }
+  .tc-toggle {
+    font-size: 10px;
+    color: var(--text3);
+    transition: transform .2s;
+  }
+  .table-card.open .tc-toggle { transform: rotate(180deg); }
+
+  .fields-table { display: none; }
+  .table-card.open .fields-table { display: table; width: 100%; border-collapse: collapse; }
+
+  .fields-table th {
+    font-family: var(--mono);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--text3);
+    padding: 8px 16px;
+    text-align: left;
+    background: rgba(255,255,255,0.02);
+    border-bottom: 1px solid var(--border);
+  }
+  .fields-table td {
+    padding: 7px 16px;
+    font-family: var(--mono);
+    font-size: 11px;
+    border-bottom: 1px solid rgba(42,49,84,0.4);
+    vertical-align: top;
+  }
+  .fields-table tr:last-child td { border-bottom: none; }
+  .fields-table tr:hover td { background: rgba(255,255,255,0.015); }
+
+  .col-name { color: var(--text); font-weight: 700; }
+  .col-type { color: var(--text2); font-size: 10px; }
+  .col-desc { color: var(--text2); font-size: 10px; font-family: var(--sans); font-weight: 400; }
+
+  .badge-pk {
+    display: inline-block;
+    font-size: 8px;
+    padding: 1px 5px;
+    border-radius: 3px;
+    background: rgba(251,191,36,0.15);
+    color: var(--pk);
+    border: 1px solid rgba(251,191,36,0.3);
+    margin-left: 4px;
+    vertical-align: middle;
+  }
+  .badge-fk {
+    display: inline-block;
+    font-size: 8px;
+    padding: 1px 5px;
+    border-radius: 3px;
+    background: rgba(96,165,250,0.12);
+    color: var(--fk);
+    border: 1px solid rgba(96,165,250,0.25);
+    margin-left: 4px;
+    vertical-align: middle;
+  }
+  .badge-json {
+    display: inline-block;
+    font-size: 8px;
+    padding: 1px 5px;
+    border-radius: 3px;
+    background: rgba(52,211,153,0.1);
+    color: var(--accent3);
+    border: 1px solid rgba(52,211,153,0.25);
+    margin-left: 4px;
+    vertical-align: middle;
+  }
+  .badge-enc {
+    display: inline-block;
+    font-size: 8px;
+    padding: 1px 5px;
+    border-radius: 3px;
+    background: rgba(248,113,113,0.12);
+    color: var(--danger);
+    border: 1px solid rgba(248,113,113,0.25);
+    margin-left: 4px;
+    vertical-align: middle;
+  }
+
+  /* ── ERD Diagram panel ── */
+  #diagram-panel {
+    padding: 24px 32px;
+  }
+
+  .diagram-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .diagram-controls .tab-btn { font-size: 10px; padding: 5px 12px; }
+
+  .mermaid-wrap {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px;
+    overflow: auto;
+    min-height: 500px;
+  }
+  .mermaid-wrap svg { max-width: 100%; }
+
+  /* ── Relationships panel ── */
+  .rel-table { width: 100%; border-collapse: collapse; }
+  .rel-table th {
+    font-family: var(--mono);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--text3);
+    padding: 10px 16px;
+    text-align: left;
+    background: var(--bg3);
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 56px; z-index: 5;
+  }
+  .rel-table td {
+    padding: 9px 16px;
+    font-family: var(--mono);
+    font-size: 11px;
+    border-bottom: 1px solid rgba(42,49,84,0.4);
+    color: var(--text2);
+  }
+  .rel-table tr:hover td { background: rgba(255,255,255,0.015); }
+  .rel-table .tbl-name { color: var(--accent); font-weight: 700; }
+  .rel-table .tbl-name2 { color: var(--accent2); font-weight: 700; }
+  .rel-cardinality { color: var(--accent3); }
+  .rel-label { color: var(--text2); font-size: 10px; }
+
+  /* ── Section headings ── */
+  .section-title {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--text);
+    margin-bottom: 6px;
+    letter-spacing: -0.01em;
+  }
+  .section-sub {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text2);
+    margin-bottom: 24px;
+  }
+
+  /* Domain color accents */
+  .d0  { --dc: #5b8cff; }
+  .d1  { --dc: #34d399; }
+  .d2  { --dc: #a78bfa; }
+  .d3  { --dc: #fb923c; }
+  .d4  { --dc: #4ade80; }
+  .d5  { --dc: #c084fc; }
+  .d6  { --dc: #f87171; }
+  .d7  { --dc: #60a5fa; }
+  .d8  { --dc: #f472b6; }
+  .d9  { --dc: #fbbf24; }
+  .d10 { --dc: #38bdf8; }
+  .d11 { --dc: #e879f9; }
+  .d12 { --dc: #a3e635; }
+  .d13 { --dc: #94a3b8; }
+
+  .domain-card::before { background: var(--dc); }
+  .domain-section-header { background: color-mix(in srgb, var(--dc) 8%, var(--bg2)); border-left-color: var(--dc); }
+  .domain-section-header .ds-name { color: var(--dc); }
+
+  /* ── Loading state ── */
+  .loading-ring {
+    display: inline-block;
+    width: 20px; height: 20px;
+    border: 2px solid var(--border2);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Scroll to top ── */
+  .scroll-top {
+    position: fixed;
+    bottom: 24px; right: 24px;
+    width: 38px; height: 38px;
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    font-size: 14px;
+    color: var(--text2);
+    transition: all .2s;
+    z-index: 100;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .scroll-top.visible { opacity: 1; pointer-events: auto; }
+  .scroll-top:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+  @media (max-width: 768px) {
+    .sidebar { display: none; }
+    .topbar { padding: 0 16px; }
+    .panel { padding: 20px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="layout">
+  
+  <!-- Main -->
+  <main class="main">
+    <!-- Topbar -->
+    <div class="topbar">
+      <div class="topbar-title"><span>Travel AI </span> — ERD Schema</div>
+      <button class="tab-btn" onclick="switchTab(&#39;overview&#39;)" data-tab="overview">Overview</button>
+      <button class="tab-btn active" onclick="switchTab(&#39;schema&#39;)" data-tab="schema">Schema</button>
+      <button class="tab-btn" onclick="switchTab(&#39;diagram&#39;)" data-tab="diagram">ER Diagrams</button>
+    </div>
+
+    <!-- OVERVIEW PANEL -->
+    <div class="panel" id="panel-overview">
+      <div class="hero">
+        <div class="hero-label">// Database Architecture</div>
+        <div class="hero-title">Entity Relationship<br>Diagram Reference</div>
+        <div class="hero-desc">
+          Complete schema for an AI-powered travel platform covering user management,
+          agent workflows, AI trip generation, bookings, payments, BNPL, and content. 
+          Built for scale with JSON fields for AI metadata and encrypted columns for PII.
+        </div>
+        <div class="hero-stats">
+          <div class="hero-stat"><div class="hero-stat-num">14</div><div class="hero-stat-lbl">Domains</div></div>
+          <div class="hero-stat"><div class="hero-stat-num">55</div><div class="hero-stat-lbl">Tables</div></div>
+          <div class="hero-stat"><div class="hero-stat-num">46</div><div class="hero-stat-lbl">FK Relations</div></div>
+          <div class="hero-stat"><div class="hero-stat-num">280+</div><div class="hero-stat-lbl">Columns</div></div>
+        </div>
+      </div>
+
+      <div class="section-title">All Domains</div>
+      <div class="section-sub">Click any domain to explore its tables in the Schema Explorer →</div>
+      <div class="domain-grid" id="domain-grid"><div class="domain-card d0">
+      <div class="dc-top">
+        <span class="dc-icon">👤</span>
+        <div>
+          <div class="dc-name">User Management</div>
+          <div class="dc-tables">3 tables</div>
+        </div>
+      </div>
+      <div class="dc-desc">Login, Traveler profiles, and AI personalization preferences for all user types.</div>
+      <div class="dc-pills"><span class="dc-pill">users</span><span class="dc-pill">user_profiles</span><span class="dc-pill">user_preferences</span></div></div><div class="domain-card d1">
+      <div class="dc-top">
+        <span class="dc-icon">🧳</span>
+        <div>
+          <div class="dc-name">Traveler Profiles</div>
+          <div class="dc-tables">2 tables</div>
+        </div>
+      </div>
+      <div class="dc-desc">Passport details, companion travelers, and emergency contacts.</div>
+      <div class="dc-pills"><span class="dc-pill">traveler_profiles</span><span class="dc-pill">traveler_companions</span></div></div><div class="domain-card d2">
+      <div class="dc-top">
+        <span class="dc-icon">🏢</span>
+        <div>
+          <div class="dc-name">Agent Management</div>
+          <div class="dc-tables">3 tables</div>
+        </div>
+      </div>
+      <div class="dc-desc">Company records, agent accounts, and KYC compliance documents.</div>
+      <div class="dc-pills"><span class="dc-pill">agent_companies</span><span class="dc-pill">agent_profiles</span><span class="dc-pill">agent_documents</span></div></div><div class="domain-card d3">
+      <div class="dc-top">
+        <span class="dc-icon">🗺</span>
+        <div>
+          <div class="dc-name">Destinations</div>
+          <div class="dc-tables">4 tables</div>
+        </div>
+      </div>
+      <div class="dc-desc">Countries, cities, destination content, and gallery images.</div>
+      <div class="dc-pills"><span class="dc-pill">countries</span><span class="dc-pill">cities</span><span class="dc-pill">destinations</span><span class="dc-pill">destination_images</span></div></div><div class="domain-card d4">
+      <div class="dc-top">
+        <span class="dc-icon">📦</span>
+        <div>
+          <div class="dc-name">Packages</div>
+          <div class="dc-tables">5 tables</div>
+        </div>
+      </div>
+      <div class="dc-desc">Agent-listed travel deals with pricing tiers, available dates, and inclusions.</div>
+      <div class="dc-pills"><span class="dc-pill">packages</span><span class="dc-pill">package_inclusions</span><span class="dc-pill">package_pricing_tiers</span><span class="dc-pill">package_dates</span><span class="dc-pill">package_media</span></div></div><div class="domain-card d5">
+      <div class="dc-top">
+        <span class="dc-icon">🤖</span>
+        <div>
+          <div class="dc-name">AI Trip Builder</div>
+          <div class="dc-tables">5 tables</div>
+        </div>
+      </div>
+      <div class="dc-desc">Trip requests, AI-generated plans, itinerary items, versioning, and swap options.</div>
+      <div class="dc-pills"><span class="dc-pill">trip_requests</span><span class="dc-pill">trip_plans</span><span class="dc-pill">trip_plan_items</span><span class="dc-pill">trip_plan_versions</span><span class="dc-pill">trip_plan_saved_options</span></div></div><div class="domain-card d6">
+      <div class="dc-top">
+        <span class="dc-icon">📋</span>
+        <div>
+          <div class="dc-name">Bookings &amp; Orders</div>
+          <div class="dc-tables">4 tables</div>
+        </div>
+      </div>
+      <div class="dc-desc">Booking master, passenger manifest, line items, and custom agent quotes.</div>
+      <div class="dc-pills"><span class="dc-pill">bookings</span><span class="dc-pill">booking_travelers</span><span class="dc-pill">booking_items</span><span class="dc-pill">custom_quotes</span></div></div><div class="domain-card d7">
+      <div class="dc-top">
+        <span class="dc-icon">👛</span>
+        <div>
+          <div class="dc-name">Wallet System</div>
+          <div class="dc-tables">4 tables</div>
+        </div>
+      </div>
+      <div class="dc-desc">User wallet, double-entry ledger, topups, and refunds.</div>
+      <div class="dc-pills"><span class="dc-pill">wallets</span><span class="dc-pill">wallet_transactions</span><span class="dc-pill">wallet_topups</span><span class="dc-pill">wallet_refunds</span></div></div><div class="domain-card d8">
+      <div class="dc-top">
+        <span class="dc-icon">💳</span>
+        <div>
+          <div class="dc-name">Payments</div>
+          <div class="dc-tables">2 tables</div>
+        </div>
+      </div>
+      <div class="dc-desc">Central payment records and deposit/balance split support.</div>
+      <div class="dc-pills"><span class="dc-pill">payments</span><span class="dc-pill">payment_splits</span></div></div><div class="domain-card d9">
+      <div class="dc-top">
+        <span class="dc-icon">🏦</span>
+        <div>
+          <div class="dc-name">BNPL / Finance</div>
+          <div class="dc-tables">3 tables</div>
+        </div>
+      </div>
+      <div class="dc-desc">Buy-Now-Pay-Later providers, applications, and installment schedules.</div>
+      <div class="dc-pills"><span class="dc-pill">finance_providers</span><span class="dc-pill">finance_applications</span><span class="dc-pill">finance_repayment_schedules</span></div></div><div class="domain-card d10">
+      <div class="dc-top">
+        <span class="dc-icon">✍️</span>
+        <div>
+          <div class="dc-name">Blogs &amp; Content</div>
+          <div class="dc-tables">4 tables</div>
+        </div>
+      </div>
+      <div class="dc-desc">Travel articles, categories, tags, and call-to-action links to packages.</div>
+      <div class="dc-pills"><span class="dc-pill">blog_categories</span><span class="dc-pill">blogs</span><span class="dc-pill">blog_tags</span><span class="dc-pill">blog_cta_links</span></div></div><div class="domain-card d11">
+      <div class="dc-top">
+        <span class="dc-icon">⭐</span>
+        <div>
+          <div class="dc-name">Reviews &amp; Ratings</div>
+          <div class="dc-tables">2 tables</div>
+        </div>
+      </div>
+      <div class="dc-desc">Polymorphic reviews covering agents, packages, destinations, and trips.</div>
+      <div class="dc-pills"><span class="dc-pill">reviews</span><span class="dc-pill">review_media</span></div></div><div class="domain-card d12">
+      <div class="dc-top">
+        <span class="dc-icon">🔔</span>
+        <div>
+          <div class="dc-name">Notifications</div>
+          <div class="dc-tables">4 tables</div>
+        </div>
+      </div>
+      <div class="dc-desc">In-app alerts, email logs, and traveler ↔ agent chat threads.</div>
+      <div class="dc-pills"><span class="dc-pill">notifications</span><span class="dc-pill">email_logs</span><span class="dc-pill">chat_threads</span><span class="dc-pill">chat_messages</span></div></div>
+	  
+	  <div class="domain-card d13">
+      <div class="dc-top">
+        <span class="dc-icon">🔐</span>
+        <div>
+          <div class="dc-name">Admin &amp; Audit</div>
+          <div class="dc-tables">3 tables</div>
+        </div>
+      </div>
+      <div class="dc-desc">Admin action logs, system-level change tracking, and config settings.</div>
+      <div class="dc-pills"><span class="dc-pill">admin_actions</span><span class="dc-pill">audit_logs</span><span class="dc-pill">system_settings</span></div>
+	  </div>
+	  
+	  </div>
+    </div>
+
+  
+    <div class="section-title">Schema Explorer</div>
+      <div class="section-sub">Browse all tables, fields, types, and annotations. Click any table header to expand.</div>
+      <div id="schema-content"><div class="domain-section d0" id="domain-User-Management">
+      <div class="domain-section-header">
+        <span class="ds-icon">👤</span>
+        <span class="ds-name">User Management</span>
+        <span class="ds-count">3 tables</span>
+      </div>
+      <div class="tables-grid">
+	  <div class="table-card" onclick="toggleTable(this)">
+		<div class="table-card-header">
+		  <span class="tc-name">users</span>
+		  <span class="tc-desc">Login and identity record for every platform user.</span>
+		  <span class="tc-toggle">▼</span>
+		</div>
+		<table class="fields-table">
+      <thead><tr><th>Column</th><th>Type / Constraint</th><th>Description</th></tr></thead>
+      <tbody><tr>
+      <td class="col-name">id<span class="badge-pk">PK</span></td>
+      <td class="col-type">INT PK</td>
+      <td class="col-desc">Auto-increment primary key</td>
+    </tr><tr>
+      <td class="col-name">uuid</td>
+      <td class="col-type">CHAR(36)</td>
+      <td class="col-desc">Unique UUID for external references</td>
+    </tr><tr>
+      <td class="col-name">first_name</td>
+      <td class="col-type">VARCHAR(100)</td>
+      <td class="col-desc">User's first name</td>
+    </tr><tr>
+      <td class="col-name">last_name</td>
+      <td class="col-type">VARCHAR(100)</td>
+      <td class="col-desc">User's last name</td>
+    </tr><tr>
+      <td class="col-name">email</td>
+      <td class="col-type">VARCHAR(255) UNIQUE</td>
+      <td class="col-desc">Login email address</td>
+    </tr><tr>
+      <td class="col-name">phone</td>
+      <td class="col-type">VARCHAR(30)</td>
+      <td class="col-desc">Optional phone number</td>
+    </tr><tr>
+      <td class="col-name">password_hash</td>
+      <td class="col-type">VARCHAR(255)</td>
+      <td class="col-desc">Bcrypt / Argon2 hash</td>
+    </tr><tr>
+      <td class="col-name">role_type</td>
+      <td class="col-type">ENUM('traveler','agent','admin','support')</td>
+      <td class="col-desc">User role</td>
+    </tr><tr>
+      <td class="col-name">status</td>
+      <td class="col-type">ENUM('active','suspended','pending','deleted')</td>
+      <td class="col-desc">Account status</td>
+    </tr><tr>
+      <td class="col-name">email_verified_at</td>
+      <td class="col-type">TIMESTAMP NULL</td>
+      <td class="col-desc">Null until email confirmed</td>
+    </tr><tr>
+      <td class="col-name">last_login_at</td>
+      <td class="col-type">TIMESTAMP NULL</td>
+      <td class="col-desc">Last successful login</td>
+    </tr><tr>
+      <td class="col-name">created_at</td>
+      <td class="col-type">TIMESTAMP</td>
+      <td class="col-desc">Record creation time</td>
+    </tr><tr>
+      <td class="col-name">updated_at</td>
+      <td class="col-type">TIMESTAMP</td>
+      <td class="col-desc">Last update time</td>
+    </tr></tbody>
+    </table>
+	 </div>
+   <div class="table-card" onclick="toggleTable(this)">
+    <div class="table-card-header">
+      <span class="tc-name">user_profiles</span>
+      <span class="tc-desc">General profile extension — 1-to-1 with users.</span>
+      <span class="tc-toggle">▼</span>
+    </div>
+    <table class="fields-table">
+      <thead><tr><th>Column</th><th>Type / Constraint</th><th>Description</th></tr></thead>
+      <tbody><tr>
+      <td class="col-name">id<span class="badge-pk">PK</span></td>
+      <td class="col-type">INT PK</td>
+      <td class="col-desc">Primary key</td>
+    </tr><tr>
+      <td class="col-name">user_id<span class="badge-fk">FK</span></td>
+      <td class="col-type">INT FK → users</td>
+      <td class="col-desc">One-to-one extension</td>
+    </tr><tr>
+      <td class="col-name">profile_photo</td>
+      <td class="col-type">VARCHAR(500)</td>
+      <td class="col-desc">CDN URL of avatar</td>
+    </tr><tr>
+      <td class="col-name">date_of_birth</td>
+      <td class="col-type">DATE</td>
+      <td class="col-desc">Optional DOB</td>
+    </tr><tr>
+      <td class="col-name">gender</td>
+      <td class="col-type">VARCHAR(20)</td>
+      <td class="col-desc">Optional gender identity</td>
+    </tr><tr>
+      <td class="col-name">country</td>
+      <td class="col-type">VARCHAR(100)</td>
+      <td class="col-desc">Home country</td>
+    </tr><tr>
+      <td class="col-name">city</td>
+      <td class="col-type">VARCHAR(100)</td>
+      <td class="col-desc">Home city</td>
+    </tr><tr>
+      <td class="col-name">preferred_currency</td>
+      <td class="col-type">VARCHAR(10)</td>
+      <td class="col-desc">ISO 4217 code e.g. USD</td>
+    </tr><tr>
+      <td class="col-name">preferred_language</td>
+      <td class="col-type">VARCHAR(10)</td>
+      <td class="col-desc">ISO 639-1 code e.g. en</td>
+    </tr><tr>
+      <td class="col-name">timezone</td>
+      <td class="col-type">VARCHAR(60)</td>
+      <td class="col-desc">IANA timezone string</td>
+    </tr><tr>
+      <td class="col-name">bio</td>
+      <td class="col-type">TEXT</td>
+      <td class="col-desc">Free-text self description</td>
+    </tr></tbody>
+    </table>
+  </div><div class="table-card" onclick="toggleTable(this)">
+    <div class="table-card-header">
+      <span class="tc-name">user_preferences</span>
+      <span class="tc-desc">AI personalization signals stored per user.</span>
+      <span class="tc-toggle">▼</span>
+    </div>
+    <table class="fields-table">
+      <thead><tr><th>Column</th><th>Type / Constraint</th><th>Description</th></tr></thead>
+      <tbody><tr>
+      <td class="col-name">id<span class="badge-pk">PK</span></td>
+      <td class="col-type">INT PK</td>
+      <td class="col-desc">Primary key</td>
+    </tr><tr>
+      <td class="col-name">user_id<span class="badge-fk">FK</span></td>
+      <td class="col-type">INT FK → users</td>
+      <td class="col-desc">Owning user</td>
+    </tr><tr>
+      <td class="col-name">budget_preference</td>
+      <td class="col-type">ENUM('budget','balanced','premium')</td>
+      <td class="col-desc">Spending tier preference</td>
+    </tr><tr>
+      <td class="col-name">travel_style</td>
+      <td class="col-type">ENUM</td>
+      <td class="col-desc">family | luxury | backpacking | adventure | honeymoon | business</td>
+    </tr><tr>
+      <td class="col-name">preferred_destinations_json<span class="badge-json">JSON</span></td>
+      <td class="col-type">JSON</td>
+      <td class="col-desc">Array of destination IDs/slugs</td>
+    </tr><tr>
+      <td class="col-name">preferred_airlines_json<span class="badge-json">JSON</span></td>
+      <td class="col-type">JSON</td>
+      <td class="col-desc">IATA airline codes</td>
+    </tr><tr>
+      <td class="col-name">preferred_accommodation_type_json<span class="badge-json">JSON</span></td>
+      <td class="col-type">JSON</td>
+      <td class="col-desc">hotel, villa, hostel, etc.</td>
+    </tr><tr>
+      <td class="col-name">food_preferences_json<span class="badge-json">JSON</span></td>
+      <td class="col-type">JSON</td>
+      <td class="col-desc">Dietary flags and cuisine types</td>
+    </tr><tr>
+      <td class="col-name">activity_preferences_json<span class="badge-json">JSON</span></td>
+      <td class="col-type">JSON</td>
+      <td class="col-desc">Hiking, beach, culture, etc.</td>
+    </tr><tr>
+      <td class="col-name">special_requirements_json<span class="badge-json">JSON</span></td>
+      <td class="col-type">JSON</td>
+      <td class="col-desc">Accessibility, medical needs</td>
+    </tr></tbody>
+    </table>
+  </div></div></div><div class="domain-section d1" id="domain-Traveler-Profiles">
+      <div class="domain-section-header">
+        <span class="ds-icon">🧳</span>
+        <span class="ds-name">Traveler Profiles</span>
+        <span class="ds-count">2 tables</span>
+      </div>
+      <div class="tables-grid"><div class="table-card" onclick="toggleTable(this)">
+    <div class="table-card-header">
+      <span class="tc-name">traveler_profiles</span>
+      <span class="tc-desc">Traveler-specific travel document and emergency info.</span>
+      <span class="tc-toggle">▼</span>
+    </div>
+    <table class="fields-table">
+      <thead><tr><th>Column</th><th>Type / Constraint</th><th>Description</th></tr></thead>
+      <tbody><tr>
+      <td class="col-name">id<span class="badge-pk">PK</span></td>
+      <td class="col-type">INT PK</td>
+      <td class="col-desc">Primary key</td>
+    </tr><tr>
+      <td class="col-name">user_id<span class="badge-fk">FK</span></td>
+      <td class="col-type">INT FK → users</td>
+      <td class="col-desc">One-to-one with users</td>
+    </tr><tr>
+      <td class="col-name">passport_name</td>
+      <td class="col-type">VARCHAR(200)</td>
+      <td class="col-desc">Name exactly as on passport</td>
+    </tr><tr>
+      <td class="col-name">nationality</td>
+      <td class="col-type">VARCHAR(100)</td>
+      <td class="col-desc">Country of citizenship</td>
+    </tr><tr>
+      <td class="col-name">emergency_contact_name</td>
+      <td class="col-type">VARCHAR(200)</td>
+      <td class="col-desc">Next-of-kin name</td>
+    </tr><tr>
+      <td class="col-name">emergency_contact_phone</td>
+      <td class="col-type">VARCHAR(30)</td>
+      <td class="col-desc">Emergency phone number</td>
+    </tr><tr>
+      <td class="col-name">frequent_flyer_details_json<span class="badge-json">JSON</span></td>
+      <td class="col-type">JSON</td>
+      <td class="col-desc">Array of {airline, number}</td>
+    </tr><tr>
+      <td class="col-name">default_travelers_count</td>
+      <td class="col-type">INT</td>
+      <td class="col-desc">Default headcount for trip searches</td>
+    </tr></tbody>
+    </table>
+  </div><div class="table-card" onclick="toggleTable(this)">
+    <div class="table-card-header">
+      <span class="tc-name">traveler_companions</span>
+      <span class="tc-desc">Saved co-travelers — family members or colleagues.</span>
+      <span class="tc-toggle">▼</span>
+    </div>
+    <table class="fields-table">
+      <thead><tr><th>Column</th><th>Type / Constraint</th><th>Description</th></tr></thead>
+      <tbody><tr>
+      <td class="col-name">id<span class="badge-pk">PK</span></td>
+      <td class="col-type">INT PK</td>
+      <td class="col-desc">Primary key</td>
+    </tr><tr>
+      <td class="col-name">traveler_profile_id<span class="badge-fk">FK</span></td>
+      <td class="col-type">INT FK → traveler_profiles</td>
+      <td class="col-desc">Owner profile</td>
+    </tr><tr>
+      <td class="col-name">full_name</td>
+      <td class="col-type">VARCHAR(200)</td>
+      <td class="col-desc">Companion's full name</td>
+    </tr><tr>
+      <td class="col-name">relationship</td>
+      <td class="col-type">VARCHAR(50)</td>
+      <td class="col-desc">e.g. spouse, child, colleague</td>
+    </tr><tr>
+      <td class="col-name">date_of_birth</td>
+      <td class="col-type">DATE</td>
+      <td class="col-desc">Used for infant/child pricing</td>
+    </tr><tr>
+      <td class="col-name">passport_number_encrypted<span class="badge-enc">ENC</span></td>
+      <td class="col-type">VARCHAR(500)</td>
+      <td class="col-desc">Encrypted at rest</td>
+    </tr><tr>
+      <td class="col-name">nationality</td>
+      <td class="col-type">VARCHAR(100)</td>
+      <td class="col-desc">Country of citizenship</td>
+    </tr><tr>
+      <td class="col-name">special_needs</td>
+      <td class="col-type">TEXT</td>
+      <td class="col-desc">Dietary or accessibility requirements</td>
+    </tr></tbody>
+    </table>
+  </div></div></div><div class="domain-section d2" id="domain-Agent-Management">
+      <div class="domain-section-header">
+        <span class="ds-icon">🏢</span>
+        <span class="ds-name">Agent Management</span>
+        <span class="ds-count">3 tables</span>
+      </div>
+      <div class="tables-grid"><div class="table-card" onclick="toggleTable(this)">
+    <div class="table-card-header">
+      <span class="tc-name">agent_companies</span>
+      <span class="tc-desc">Travel company master record — one row per registered business.</span>
+      <span class="tc-toggle">▼</span>
+    </div>
+    <table class="fields-table">
+      <thead><tr><th>Column</th><th>Type / Constraint</th><th>Description</th></tr></thead>
+      <tbody><tr>
+      <td class="col-name">id<span class="badge-pk">PK</span></td>
+      <td class="col-type">INT PK</td>
+      <td class="col-desc">Primary key</td>
+    </tr><tr>
+      <td class="col-name">company_name</td>
+      <td class="col-type">VARCHAR(200)</td>
+      <td class="col-desc">Trading name</td>
+    </tr><tr>
+      <td class="col-name">legal_name</td>
+      <td class="col-type">VARCHAR(200)</td>
+      <td class="col-desc">Registered legal name</td>
+    </tr><tr>
+      <td class="col-name">registration_number</td>
+      <td class="col-type">VARCHAR(100)</td>
+      <td class="col-desc">Company registration number</td>
+    </tr><tr>
+      <td class="col-name">tax_number</td>
+      <td class="col-type">VARCHAR(100)</td>
+      <td class="col-desc">VAT / Tax ID</td>
+    </tr><tr>
+      <td class="col-name">country</td>
+      <td class="col-type">VARCHAR(100)</td>
+      <td class="col-desc">HQ country</td>
+    </tr><tr>
+      <td class="col-name">city</td>
+      <td class="col-type">VARCHAR(100)</td>
+      <td class="col-desc">HQ city</td>
+    </tr><tr>
+      <td class="col-name">website</td>
+      <td class="col-type">VARCHAR(300)</td>
+      <td class="col-desc">Company website URL</td>
+    </tr><tr>
+      <td class="col-name">status</td>
+      <td class="col-type">ENUM('pending','approved','rejected','suspended')</td>
+      <td class="col-desc">Admin-controlled status</td>
+    </tr><tr>
+      <td class="col-name">verified_at</td>
+      <td class="col-type">TIMESTAMP NULL</td>
+      <td class="col-desc">Admin approval timestamp</td>
+    </tr></tbody>
+    </table>
+  </div><div class="table-card" onclick="toggleTable(this)">
+    <div class="table-card-header">
+      <span class="tc-name">agent_profiles</span>
+      <span class="tc-desc">Individual agent user linked to a parent company.</span>
+      <span class="tc-toggle">▼</span>
+    </div>
+    <table class="fields-table">
+      <thead><tr><th>Column</th><th>Type / Constraint</th><th>Description</th></tr></thead>
+      <tbody><tr>
+      <td class="col-name">id<span class="badge-pk">PK</span></td>
+      <td class="col-type">INT PK</td>
+      <td class="col-desc">Primary key</td>
+    </tr><tr>
+      <td class="col-name">user_id<span class="badge-fk">FK</span></td>
+      <td class="col-type">INT FK → users</td>
+      <td class="col-desc">Login account for this agent</td>
+    </tr><tr>
+      <td class="col-name">company_id<span class="badge-fk">FK</span></td>
+      <td class="col-type">INT FK → agent_companies</td>
+      <td class="col-desc">Parent company</td>
+    </tr><tr>
+      <td class="col-name">job_title</td>
+      <td class="col-type">VARCHAR(150)</td>
+      <td class="col-desc">e.g. Senior Travel Consultant</td>
+    </tr><tr>
+      <td class="col-name">specialization</td>
+      <td class="col-type">VARCHAR(200)</td>
+      <td class="col-desc">e.g. Luxury, Adventure, Honeymoon</td>
+    </tr><tr>
+      <td class="col-name">years_experience</td>
+      <td class="col-type">INT</td>
+      <td class="col-desc">Years in travel industry</td>
+    </tr><tr>
+      <td class="col-name">rating_average</td>
+      <td class="col-type">DECIMAL(3,2)</td>
+      <td class="col-desc">Calculated average from reviews</td>
+    </tr><tr>
+      <td class="col-name">total_reviews</td>
+      <td class="col-type">INT</td>
+      <td class="col-desc">Denormalized review count</td>
+    </tr><tr>
+      <td class="col-name">is_featured</td>
+      <td class="col-type">BOOLEAN</td>
+      <td class="col-desc">Promoted in search results</td>
+    </tr></tbody>
+    </table>
+  </div><div class="table-card" onclick="toggleTable(this)">
+    <div class="table-card-header">
+      <span class="tc-name">agent_documents</span>
+      <span class="tc-desc">KYC and compliance documents for company verification.</span>
+      <span class="tc-toggle">▼</span>
+    </div>
+    <table class="fields-table">
+      <thead><tr><th>Column</th><th>Type / Constraint</th><th>Description</th></tr></thead>
+      <tbody><tr>
+      <td class="col-name">id<span class="badge-pk">PK</span></td>
+      <td class="col-type">INT PK</td>
+      <td class="col-desc">Primary key</td>
+    </tr><tr>
+      <td class="col-name">company_id<span class="badge-fk">FK</span></td>
+      <td class="col-type">INT FK → agent_companies</td>
+      <td class="col-desc">Owning company</td>
+    </tr><tr>
+      <td class="col-name">document_type</td>
+      <td class="col-type">VARCHAR(100)</td>
+      <td class="col-desc">e.g. trade_license, passport, insurance</td>
+    </tr><tr>
+      <td class="col-name">file_url</td>
+      <td class="col-type">VARCHAR(500)</td>
+      <td class="col-desc">Secure storage URL</td>
+    </tr><tr>
+      <td class="col-name">verification_status</td>
+      <td class="col-type">ENUM('pending','verified','rejected')</td>
+      <td class="col-desc">Review status</td>
+    </tr><tr>
+      <td class="col-name">verified_by</td>
+      <td class="col-type">INT</td>
+      <td class="col-desc">Admin user ID who reviewed</td>
+    </tr><tr>
+      <td class="col-name">verified_at</td>
+      <td class="col-type">TIMESTAMP NULL</td>
+      <td class="col-desc">Date of verification decision</td>
+    </tr></tbody>
+    </table>
+  </div></div></div><div class="domain-section d3" id="domain-Destinations">
+      <div class="domain-section-header">
+        <span class="ds-icon">🗺</span>
+        <span class="ds-name">Destinations</span>
+        <span class="ds-count">4 tables</span>
+      </div>
+      <div class="tables-grid"><div class="table-card" onclick="toggleTable(this)">
+    <div class="table-card-header">
+      <span class="tc-name">countries</span>
+      <span class="tc-desc">Country master list with ISO codes.</span>
+      <span class="tc-toggle">▼</span>
+    </div>
+    <table class="fields-table">
+      <thead><tr><th>Column</th><th>Type / Constraint</th><th>Description</th></tr></thead>
+      <tbody><tr>
+      <td class="col-name">id<span class="badge-pk">PK</span></td>
+      <td class="col-type">INT PK</td>
+      <td class="col-desc">Primary key</td>
+    </tr><tr>
+      <td class="col-name">name</td>
+      <td class="col-type">VARCHAR(100)</td>
+      <td class="col-desc">Full country name</td>
+    </tr><tr>
+      <td class="col-name">iso_code</td>
+      <td class="col-type">CHAR(3) UNIQUE</td>
+      <td class="col-desc">ISO 3166-1 alpha-3 code</td>
+    </tr><tr>
+      <td class="col-name">currency_code</td>
+      <td class="col-type">CHAR(3)</td>
+      <td class="col-desc">Default ISO 4217 currency</td>
+    </tr><tr>
+      <td class="col-name">status</td>
+      <td class="col-type">ENUM('active','inactive')</td>
+      <td class="col-desc">Active in platform</td>
+    </tr></tbody>
+    </table>
+  </div><div class="table-card" onclick="toggleTable(this)">
+    <div class="table-card-header">
+      <span class="tc-name">cities</span>
+      <span class="tc-desc">City and airport lookup table.</span>
+      <span class="tc-toggle">▼</span>
+    </div>
+    <table class="fields-table">
+      <thead><tr><th>Column</th><th>Type / Constraint</th><th>Description</th></tr></thead>
+      <tbody><tr>
+      <td class="col-name">id<span class="badge-pk">PK</span></td>
+      <td class="col-type">INT PK</td>
+      <td class="col-desc">Primary key</td>
+    </tr><tr>
+      <td class="col-name">country_id<span class="badge-fk">FK</span></td>
+      <td class="col-type">INT FK → countries</td>
+      <td class="col-desc">Parent country</td>
+    </tr><tr>
+      <td class="col-name">name</td>
+      <td class="col-type">VARCHAR(150)</td>
+      <td class="col-desc">City display name</td>
+    </tr><tr>
+      <td class="col-name">state_region</td>
+      <td class="col-type">VARCHAR(150)</td>
+      <td class="col-desc">State or province</td>
+    </tr><tr>
+      <td class="col-name">iata_code</td>
+      <td class="col-type">CHAR(3)</td>
+      <td class="col-desc">Airport IATA code (optional)</td>
+    </tr><tr>
+      <td class="col-name">latitude</td>
+      <td class="col-type">DECIMAL(10,7)</td>
+      <td class="col-desc">GPS latitude</td>
+    </tr><tr>
+      <td class="col-name">longitude</td>
+      <td class="col-type">DECIMAL(10,7)</td>
+      <td class="col-desc">GPS longitude</td>
+    </tr></tbody>
+    </table>
+  </div><div class="table-card" onclick="toggleTable(this)">
+    <div class="table-card-header">
+      <span class="tc-name">destinations</span>
+      <span class="tc-desc">Core travel destination with content and metadata.</span>
+      <span class="tc-toggle">▼</span>
+    </div>
+    <table class="fields-table">
+      <thead><tr><th>Column</th><th>Type / Constraint</th><th>Description</th></tr></thead>
+      <tbody><tr>
+      <td class="col-name">id<span class="badge-pk">PK</span></td>
+      <td class="col-type">INT PK</td>
+      <td class="col-desc">Primary key</td>
+    </tr><tr>
+      <td class="col-name">country_id<span class="badge-fk">FK</span></td>
+      <td class="col-type">INT FK → countries</td>
+      <td class="col-desc">Parent country</td>
+    </tr><tr>
+      <td class="col-name">city_id<span class="badge-fk">FK</span></td>
+      <td class="col-type">INT FK NULL → cities</td>
+      <td class="col-desc">Linked city (nullable)</td>
+    </tr><tr>
+      <td class="col-name">destination_name</td>
+      <td class="col-type">VARCHAR(200)</td>
+      <td class="col-desc">Display name</td>
+    </tr><tr>
+      <td class="col-name">slug</td>
+      <td class="col-type">VARCHAR(220) UNIQUE</td>
+      <td class="col-desc">URL-friendly identifier</td>
+    </tr><tr>
+      <td class="col-name">destination_type</td>
+      <td class="col-type">ENUM</td>
+      <td class="col-desc">city | island | country | region | attraction</td>
+    </tr><tr>
+      <td class="col-name">average_budget_min</td>
+      <td class="col-type">DECIMAL(10,2)</td>
+      <td class="col-desc">Lower budget estimate</td>
+    </tr><tr>
+      <td class="col-name">average_budget_max</td>
+      <td class="col-type">DECIMAL(10,2)</td>
+      <td class="col-desc">Upper budget estimate</td>
+    </tr><tr>
+      <td class="col-name">best_travel_months_json<span class="badge-json">JSON</span></td>
+      <td class="col-type">JSON</td>
+      <td class="col-desc">Array of month numbers 1–12</td>
+    </tr><tr>
+      <td class="col-name">travel_tags_json<span class="badge-json">JSON</span></td>
+      <td class="col-type">JSON</td>
+      <td class="col-desc">Tags for search indexing</td>
+    </tr><tr>
+      <td class="col-name">popularity_score</td>
+      <td class="col-type">DECIMAL(5,2)</td>
+      <td class="col-desc">Algorithmically calculated score</td>
+    </tr><tr>
+      <td class="col-name">status</td>
+      <td class="col-type">ENUM('active','inactive','draft')</td>
+      <td class="col-desc">Content status</td>
+    </tr></tbody>
+    </table>
+  </div><div class="table-card" onclick="toggleTable(this)">
+    <div class="table-card-header">
+      <span class="tc-name">destination_images</span>
+      <span class="tc-desc">Gallery images attached to a destination.</span>
+      <span class="tc-toggle">▼</span>
+    </div>
+    <table class="fields-table">
+      <thead><tr><th>Column</th><th>Type / Constraint</th><th>Description</th></tr></thead>
+      <tbody><tr>
+      <td class="col-name">id<span class="badge-pk">PK</span></td>
+      <td class="col-type">INT PK</td>
+      <td class="col-desc">Primary key</td>
+    </tr><tr>
+      <td class="col-name">destination_id<span class="badge-fk">FK</span></td>
+      <td class="col-type">INT FK → destinations</td>
+      <td class="col-desc">Parent destination</td>
+    </tr><tr>
+      <td class="col-name">image_url</td>
+      <td class="col-type">VARCHAR(500)</td>
+      <td class="col-desc">CDN URL</td>
+    </tr><tr>
+      <td class="col-name">caption</td>
+      <td class="col-type">VARCHAR(300)</td>
+      <td class="col-desc">Alt text or caption</td>
+    </tr><tr>
+      <td class="col-name">sort_order</td>
+      <td class="col-type">INT</td>
+      <td class="col-desc">Display order</td>
+    </tr></tbody>
+    </table>
+  </div></div></div><div class="domain-section d4" id="domain-Packages">
+      <div class="domain-section-header">
+        <span class="ds-icon">📦</span>
+        <span class="ds-name">Packages</span>
+        <span class="ds-count">5 tables</span>
+      </div>
+      <div class="tables-grid"><div class="table-card" onclick="toggleTable(this)">
+    <div class="table-card-header">
+      <span class="tc-name">packages</span>
+      <span class="tc-desc">Travel deal created and published by an agent.</span>
+      <span class="tc-toggle">▼</span>
+    </div>
+    <table class="fields-table">
+      <thead><tr><th>Column</th><th>Type / Constraint</th><th>Description</th></tr></thead>
+      <tbody><tr>
+      <td class="col-name">id<span class="badge-pk">PK</span></td>
+      <td class="col-type">INT PK</td>
+      <td class="col-desc">Primary key</td>
+    </tr><tr>
+      <td class="col-name">company_id<span class="badge-fk">FK</span></td>
+      <td class="col-type">INT FK → agent_companies</td>
+      <td class="col-desc">Publishing company</td>
+    </tr><tr>
+      <td class="col-name">agent_profile_id<span class="badge-fk">FK</span></td>
+      <td class="col-type">INT FK → agent_profiles</td>
+      <td class="col-desc">Publishing agent</td>
+    </tr><tr>
+      <td class="col-name">destination_id<span class="badge-fk">FK</span></td>
+      <td class="col-type">INT FK → destinations</td>
+      <td class="col-desc">Primary destination</td>
+    </tr><tr>
+      <td class="col-name">package_name</td>
+      <td class="col-type">VARCHAR(200)</td>
+      <td class="col-desc">Display name</td>
+    </tr><tr>
+      <td class="col-name">slug</td>
+      <td class="col-type">VARCHAR(220) UNIQUE</td>
+      <td class="col-desc">URL-friendly identifier</td>
+    </tr><tr>
+      <td class="col-name">package_type</td>
+      <td class="col-type">ENUM</td>
+      <td class="col-desc">budget | premium | honeymoon | family | adventure | business</td>
+    </tr><tr>
+      <td class="col-name">duration_days</td>
+      <td class="col-type">INT</td>
+      <td class="col-desc">Trip length in days</td>
+    </tr><tr>
+      <td class="col-name">base_price</td>
+      <td class="col-type">DECIMAL(12,2)</td>
+      <td class="col-desc">Starting price per person</td>
+    </tr><tr>
+      <td class="col-name">service_fee_type</td>
+      <td class="col-type">ENUM('flat','percentage')</td>
+      <td class="col-desc">Fee calculation method</td>
+    </tr><tr>
+      <td class="col-name">is_customizable</td>
+      <td class="col-type">BOOLEAN</td>
+      <td class="col-desc">Allows AI trip integration</td>
+    </tr><tr>
+      <td class="col-name">status</td>
+      <td class="col-type">ENUM('draft','published','archived')</td>
+      <td class="col-desc">Publication status</td>
+    </tr><tr>
+      <td class="col-name">featured_until</td>
+      <td class="col-type">TIMESTAMP NULL</td>
+      <td class="col-desc">Paid promotion expiry date</td>
+    </tr></tbody>
+    </table>
+  </div><div class="table-card" onclick="toggleTable(this)">
+    <div class="table-card-header">
+      <span class="tc-name">package_inclusions</span>
+      <span class="tc-desc">Itemised inclusions (flights, hotels, meals, etc.).</span>
+      <span class="tc-toggle">▼</span>
+    </div>
+    <table class="fields-table">
+      <thead><tr><th>Column</th><th>Type / Constraint</th><th>Description</th></tr></thead>
+      <tbody><tr>
+      <td class="col-name">id<span class="badge-pk">PK</span></td>
+      <td class="col-type">INT PK</td>
+      <td class="col-desc">Primary key</td>
+    </tr><tr>
+      <td class="col-name">package_id<span class="badge-fk">FK</span></td>
+      <td class="col-type">INT FK → packages</td>
+      <td class="col-desc">Parent package</td>
+    </tr><tr>
+      <td class="col-name">inclusion_type</td>
+      <td class="col-type">ENUM</td>
+      <td class="col-desc">flight | hotel | activity | transport | meal | insurance | visa_support</td>
+    </tr><tr>
+      <td class="col-name">title</td>
+      <td class="col-type">VARCHAR(200)</td>
+      <td class="col-desc">Short label</td>
+    </tr><tr>
+      <td class="col-name">quantity</td>
+      <td class="col-type">INT</td>
+      <td class="col-desc">Number of units included</td>
+    </tr><tr>
+      <td class="col-name">sort_order</td>
+      <td class="col-type">INT</td>
+      <td class="col-desc">Display ordering</td>
+    </tr></tbody>
+    </table>
+  </div><div class="table-card" onclick="toggleTable(this)">
+    <div class="table-card-header">
+      <span class="tc-name">package_pricing_tiers</span>
+      <span class="tc-desc">Price matrix by traveler count and room type.</span>
+      <span class="tc-toggle">▼</span>
+    </div>
+    <table class="fields-table">
+      <thead><tr><th>Column</th><th>Type / Constraint</th><th>Description</th></tr></thead>
+      <tbody><tr>
+      <td class="col-name">id<span class="badge-pk">PK</span></td>
+      <td class="col-type">INT PK</td>
+      <td class="col-desc">Primary key</td>
+    </tr><tr>
+      <td class="col-name">package_id<span class="badge-fk">FK</span></td>
+      <td class="col-type">INT FK → packages</td>
+      <td class="col-desc">Parent package</td>
+    </tr><tr>
+      <td class="col-name">traveler_count_min</td>
+      <td class="col-type">INT</td>
+      <td class="col-desc">Min pax for this tier</td>
+    </tr><tr>
+      <td class="col-name">traveler_count_max</td>
+      <td class="col-type">INT</td>
+      <td class="col-desc">Max pax for this tier</td>
+    </tr><tr>
+      <td class="col-name">room_type</td>
+      <td class="col-type">VARCHAR(100)</td>
+      <td class="col-desc">e.g. single, double, triple</td>
+    </tr><tr>
+      <td class="col-name">travel_class</td>
+      <td class="col-type">VARCHAR(50)</td>
+      <td class="col-desc">e.g. economy, business</td>
+    </tr><tr>
+      <td class="col-name">price_per_person</td>
+      <td class="col-type">DECIMAL(12,2)</td>
+      <td class="col-desc">Final per-pax price for this tier</td>
+    </tr></tbody>
+    </table>
+  </div><div class="table-card" onclick="toggleTable(this)">
+    <div class="table-card-header">
+      <span class="tc-name">package_dates</span>
+      <span class="tc-desc">Available departure windows with capacity.</span>
+      <span class="tc-toggle">▼</span>
+    </div>
+    <table class="fields-table">
+      <thead><tr><th>Column</th><th>Type / Constraint</th><th>Description</th></tr></thead>
+      <tbody><tr>
+      <td class="col-name">id<span class="badge-pk">PK</span></td>
+      <td class="col-type">INT PK</td>
+      <td class="col-desc">Primary key</td>
+    </tr><tr>
+      <td class="col-name">package_id<span class="badge-fk">FK</span></td>
+      <td class="col-type">INT FK → packages</td>
+      <td class="col-desc">Parent package</td>
+    </tr><tr>
+      <td class="col-name">departure_date</td>
+      <td class="col-type">DATE</td>
+      <td class="col-desc">Trip start date</td>
+    </tr><tr>
+      <td class="col-name">return_date</td>
+      <td class="col-type">DATE</td>
+      <td class="col-desc">Trip end date</td>
+    </tr><tr>
+      <td class="col-name">available_slots</td>
+      <td class="col-type">INT</td>
+      <td class="col-desc">Remaining open seats</td>
+    </tr><tr>
+      <td class="col-name">status</td>
+      <td class="col-type">ENUM('open','full','cancelled')</td>
+      <td class="col-desc">Date availability status</td>
+    </tr></tbody>
+    </table>
+  </div><div class="table-card" onclick="toggleTable(this)">
+    <div class="table-card-header">
+      <span class="tc-name">package_media</span>
+      <span class="tc-desc">Photos, videos, and brochures for a package.</span>
+      <span class="tc-toggle">▼</span>
+    </div>
+    <table class="fields-table">
+      <thead><tr><th>Column</th><th>Type / Constraint</th><th>Description</th></tr></thead>
+      <tbody><tr>
+      <td class="col-name">id<span class="badge-pk">PK</span></td>
+      <td class="col-type">INT PK</td>
+      <td class="col-desc">Primary key</td>
+    </tr><tr>
+      <td class="col-name">package_id<span class="badge-fk">FK</span></td>
+      <td class="col-type">INT FK → packages</td>
+      <td class="col-desc">Parent package</td>
+    </tr><tr>
+      <td class="col-name">media_type</td>
+      <td class="col-type">ENUM('image','video','brochure')</td>
+      <td class="col-desc">Media category</td>
+    </tr><tr>
+      <td class="col-name">file_url</td>
+      <td class="col-type">VARCHAR(500)</td>
+      <td class="col-desc">CDN URL of the asset</td>
+    </tr><tr>
+      <td class="col-name">sort_order</td>
+      <td class="col-type">INT</td>
+      <td class="col-desc">Display ordering</td>
+    </tr></tbody>
+    </table>
+  </div></div></div><div class="domain-section d5" id="domain-AI-Trip-Builder">
+      <div class="domain-section-header">
+        <span class="ds-icon">🤖</span>
+        <span class="ds-name">AI Trip Builder</span>
+        <span class="ds-count">5 tables</span>
+      </div>
+      <div class="tables-grid"><div class="table-card" onclick="toggleTable(this)">
+    <div class="table-card-header">
+      <span class="tc-name">trip_requests</span>
+      <span class="tc-desc">Raw user input that triggers the AI planning pipeline.</span>
+      <span class="tc-toggle">▼</span>
+    </div>
+    <table class="fields-table">
+      <thead><tr><th>Column</th><th>Type / Constraint</th><th>Description</th></tr></thead>
+      <tbody><tr>
+      <td class="col-name">id<span class="badge-pk">PK</span></td>
+      <td class="col-type">INT PK</td>
+      <td class="col-desc">Primary key</td>
+    </tr><tr>
+      <td class="col-name">user_id<span class="badge-fk">FK</span></td>
+      <td class="col-type">INT FK → users</td>
+      <td class="col-desc">Requesting traveler</td>
+    </tr><tr>
+      <td class="col-name">search_query</td>
+      <td class="col-type">TEXT</td>
+      <td class="col-desc">Natural language trip query</td>
+    </tr><tr>
+      <td class="col-name">origin_city_id<span class="badge-fk">FK</span></td>
+      <td class="col-type">INT FK NULL → cities</td>
+      <td class="col-desc">Departure city</td>
+    </tr><tr>
+      <td class="col-name">destination_id<span class="badge-fk">FK</span></td>
+      <td class="col-type">INT FK NULL → destinations</td>
+      <td class="col-desc">Target destination</td>
+    </tr><tr>
+      <td class="col-name">travel_start_date</td>
+      <td class="col-type">DATE</td>
+      <td class="col-desc">Earliest departure date</td>
+    </tr><tr>
+      <td class="col-name">travel_end_date</td>
+      <td class="col-type">DATE</td>
+      <td class="col-desc">Latest return date</td>
+    </tr><tr>
+      <td class="col-name">traveler_count</td>
+      <td class="col-type">INT</td>
+      <td class="col-desc">Total travelers</td>
+    </tr><tr>
+      <td class="col-name">adult_count</td>
+      <td class="col-type">INT</td>
+      <td class="col-desc">Adults (pricing factor)</td>
+    </tr><tr>
+      <td class="col-name">child_count</td>
+      <td class="col-type">INT</td>
+      <td class="col-desc">Children (pricing factor)</td>
+    </tr><tr>
+      <td class="col-name">infant_count</td>
+      <td class="col-type">INT</td>
+      <td class="col-desc">Infants (pricing factor)</td>
+    </tr><tr>
+      <td class="col-name">budget_min</td>
+      <td class="col-type">DECIMAL(12,2)</td>
+      <td class="col-desc">Lower budget bound</td>
+    </tr><tr>
+      <td class="col-name">budget_max</td>
+      <td class="col-type">DECIMAL(12,2)</td>
+      <td class="col-desc">Upper budget bound</td>
+    </tr><tr>
+      <td class="col-name">travel_mode</td>
+      <td class="col-type">ENUM</td>
+      <td class="col-desc">budget_friendly | leisure_first | balanced</td>
+    </tr><tr>
+      <td class="col-name">preferences_json<span class="badge-json">JSON</span></td>
+      <td class="col-type">JSON</td>
+      <td class="col-desc">Merged AI personalization payload</td>
+    </tr><tr>
+      <td class="col-name">status</td>
+      <td class="col-type">ENUM</td>
+      <td class="col-desc">submitted | processing | completed | abandoned</td>
+    </tr></tbody>
+    </table>
+  </div><div class="table-card" onclick="toggleTable(this)">
+    <div class="table-card-header">
+      <span class="tc-name">trip_plans</span>
+      <span class="tc-desc">AI-generated itinerary header record.</span>
+      <span class="tc-toggle">▼</span>
+    </div>
+    <table class="fields-table">
+      <thead><tr><th>Column</th><th>Type / Constraint</th><th>Description</th></tr></thead>
+      <tbody><tr>
+      <td class="col-name">id<span class="badge-pk">PK</span></td>
+      <td class="col-type">INT PK</td>
+      <td class="col-desc">Primary key</td>
+    </tr><tr>
+      <td class="col-name">trip_request_id<span class="badge-fk">FK</span></td>
+      <td class="col-type">INT FK → trip_requests</td>
+      <td class="col-desc">Source request</td>
+    </tr><tr>
+      <td class="col-name">user_id<span class="badge-fk">FK</span></td>
+      <td class="col-type">INT FK → users</td>
+      <td class="col-desc">Plan owner</td>
+    </tr><tr>
+      <td class="col-name">plan_name</td>
+      <td class="col-type">VARCHAR(200)</td>
+      <td class="col-desc">Auto-generated plan name</td>
+    </tr><tr>
+      <td class="col-name">plan_type</td>
+      <td class="col-type">ENUM</td>
+      <td class="col-desc">budget | balanced | premium | agent_custom</td>
+    </tr><tr>
+      <td class="col-name">total_estimated_cost</td>
+      <td class="col-type">DECIMAL(12,2)</td>
+      <td class="col-desc">Sum of all item costs + fee</td>
+    </tr><tr>
+      <td class="col-name">service_fee_amount</td>
+      <td class="col-type">DECIMAL(10,2)</td>
+      <td class="col-desc">Platform service fee</td>
+    </tr><tr>
+      <td class="col-name">wallet_eligible</td>
+      <td class="col-type">BOOLEAN</td>
+      <td class="col-desc">Can use wallet balance for payment</td>
+    </tr><tr>
+      <td class="col-name">ai_confidence_score</td>
+      <td class="col-type">DECIMAL(5,2)</td>
+      <td class="col-desc">0–100 AI quality/confidence score</td>
+    </tr><tr>
+      <td class="col-name">status</td>
+      <td class="col-type">ENUM</td>
+      <td class="col-desc">draft | finalized | booked | expired</td>
+    </tr></tbody>
+    </table>
+  </div><div class="table-card" onclick="toggleTable(this)">
+    <div class="table-card-header">
+      <span class="tc-name">trip_plan_items</span>
+      <span class="tc-desc">Individual day-by-day itinerary components.</span>
+      <span class="tc-toggle">▼</span>
+    </div>
+    <table class="fields-table">
+      <thead><tr><th>Column</th><th>Type / Constraint</th><th>Description</th></tr></thead>
+      <tbody><tr>
+      <td class="col-name">id<span class="badge-pk">PK</span></td>
+      <td class="col-type">INT PK</td>
+      <td class="col-desc">Primary key</td>
+    </tr><tr>
+      <td class="col-name">trip_plan_id<span class="badge-fk">FK</span></td>
+      <td class="col-type">INT FK → trip_plans</td>
+      <td class="col-desc">Parent plan</td>
+    </tr><tr>
+      <td class="col-name">item_type</td>
+      <td class="col-type">ENUM</td>
+      <td class="col-desc">flight | hotel | activity | transport | transfer | meal | visa | insurance</td>
+    </tr><tr>
+      <td class="col-name">day_number</td>
+      <td class="col-type">INT</td>
+      <td class="col-desc">Which day of the trip (1-based)</td>
+    </tr><tr>
+      <td class="col-name">title</td>
+      <td class="col-type">VARCHAR(300)</td>
+      <td class="col-desc">Short item label</td>
+    </tr><tr>
+      <td class="col-name">vendor_source</td>
+      <td class="col-type">VARCHAR(200)</td>
+      <td class="col-desc">API source (Amadeus, Booking.com…)</td>
+    </tr><tr>
+      <td class="col-name">base_cost</td>
+      <td class="col-type">DECIMAL(12,2)</td>
+      <td class="col-desc">Vendor base price</td>
+    </tr><tr>
+      <td class="col-name">service_fee</td>
+      <td class="col-type">DECIMAL(10,2)</td>
+      <td class="col-desc">Platform add-on fee</td>
+    </tr><tr>
+      <td class="col-name">total_cost</td>
+      <td class="col-type">DECIMAL(12,2)</td>
+      <td class="col-desc">base_cost + service_fee</td>
+    </tr><tr>
+      <td class="col-name">meta_json<span class="badge-json">JSON</span></td>
+      <td class="col-type">JSON</td>
+      <td class="col-desc">Raw API response / provider payload</td>
+    </tr><tr>
+      <td class="col-name">sort_order</td>
+      <td class="col-type">INT</td>
+      <td class="col-desc">Display ordering within the day</td>
+    </tr></tbody>
+    </table>
+  </div><div class="table-card" onclick="toggleTable(this)">
+    <div class="table-card-header">
+      <span class="tc-name">trip_plan_versions</span>
+      <span class="tc-desc">Full plan snapshot captured on every edit.</span>
+      <span class="tc-toggle">▼</span>
+    </div>
+    <table class="fields-table">
+      <thead><tr><th>Column</th><th>Type / Constraint</th><th>Description</th></tr></thead>
+      <tbody><tr>
+      <td class="col-name">id<span class="badge-pk">PK</span></td>
+      <td class="col-type">INT PK</td>
+      <td class="col-desc">Primary key</td>
+    </tr><tr>
+      <td class="col-name">trip_plan_id<span class="badge-fk">FK</span></td>
+      <td class="col-type">INT FK → trip_plans</td>
+      <td class="col-desc">Parent plan</td>
+    </tr><tr>
+      <td class="col-name">version_no</td>
+      <td class="col-type">INT</td>
+      <td class="col-desc">Incrementing version number</td>
+    </tr><tr>
+      <td class="col-name">change_summary</td>
+      <td class="col-type">TEXT</td>
+      <td class="col-desc">Human-readable diff summary</td>
+    </tr><tr>
+      <td class="col-name">full_plan_json<span class="badge-json">JSON</span></td>
+      <td class="col-type">JSON</td>
+      <td class="col-desc">Complete serialized plan state</td>
+    </tr><tr>
+      <td class="col-name">created_by_type</td>
+      <td class="col-type">ENUM</td>
+      <td class="col-desc">ai | user | agent | admin</td>
+    </tr></tbody>
+    </table>
+  </div><div class="table-card" onclick="toggleTable(this)">
+    <div class="table-card-header">
+      <span class="tc-name">trip_plan_saved_options</span>
+      <span class="tc-desc">Swappable alternative options per itinerary item.</span>
+      <span class="tc-toggle">▼</span>
+    </div>
+    <table class="fields-table">
+      <thead><tr><th>Column</th><th>Type / Constraint</th><th>Description</th></tr></thead>
+      <tbody><tr>
+      <td class="col-name">id<span class="badge-pk">PK</span></td>
+      <td class="col-type">INT PK</td>
+      <td class="col-desc">Primary key</td>
+    </tr><tr>
+      <td class="col-name">trip_plan_id<span class="badge-fk">FK</span></td>
+      <td class="col-type">INT FK → trip_plans</td>
+      <td class="col-desc">Parent plan</td>
+    </tr><tr>
+      <td class="col-name">trip_plan_item_id<span class="badge-fk">FK</span></td>
+      <td class="col-type">INT FK → trip_plan_items</td>
+      <td class="col-desc">Item this is an alternative for</td>
+    </tr><tr>
+      <td class="col-name">option_type</td>
+      <td class="col-type">VARCHAR(100)</td>
+      <td class="col-desc">flight, hotel, activity, etc.</td>
+    </tr><tr>
+      <td class="col-name">option_title</td>
+      <td class="col-type">VARCHAR(300)</td>
+      <td class="col-desc">Display label for the option</td>
+    </tr><tr>
+      <td class="col-name">option_cost</td>
+      <td class="col-type">DECIMAL(12,2)</td>
+      <td class="col-desc">Cost of this alternative</td>
+    </tr><tr>
+      <td class="col-name">meta_json<span class="badge-json">JSON</span></td>
+      <td class="col-type">JSON</td>
+      <td class="col-desc">Provider details needed for booking</td>
+    </tr></tbody>
+    </table>
+  </div></div></div><div class="domain-section d6" id="domain-Bookings-&amp;-Orders">
+      <div class="domain-section-header">
+        <span class="ds-icon">📋</span>
+        <span class="ds-name">Bookings &amp; Orders</span>
+        <span class="ds-count">4 tables</span>
+      </div>
+      <div class="tables-grid"><div class="table-card" onclick="toggleTable(this)">
+    <div class="table-card-header">
+      <span class="tc-name">bookings</span>
+      <span class="tc-desc">Master booking record — one row per confirmed purchase.</span>
+      <span class="tc-toggle">▼</span>
+    </div>
+    <table class="fields-table">
+      <thead><tr><th>Column</th><th>Type / Constraint</th><th>Description</th></tr></thead>
+      <tbody><tr>
+      <td class="col-name">id<span class="badge-pk">PK</span></td>
+      <td class="col-type">INT PK</td>
+      <td class="col-desc">Primary key</td>
+    </tr><tr>
+      <td class="col-name">booking_number</td>
+      <td class="col-type">VARCHAR(30) UNIQUE</td>
+      <td class="col-desc">Human-readable ref e.g. TRV-20260001</td>
+    </tr><tr>
+      <td class="col-name">user_id<span class="badge-fk">FK</span></td>
+      <td class="col-type">INT FK → users</td>
+      <td class="col-desc">Booking traveler</td>
+    </tr><tr>
+      <td class="col-name">package_id<span class="badge-fk">FK</span></td>
+      <td class="col-type">INT FK NULL → packages</td>
+      <td class="col-desc">If package booking (nullable)</td>
+    </tr><tr>
+      <td class="col-name">trip_plan_id<span class="badge-fk">FK</span></td>
+      <td class="col-type">INT FK NULL → trip_plans</td>
+      <td class="col-desc">If AI trip booking (nullable)</td>
+    </tr><tr>
+      <td class="col-name">agent_profile_id<span class="badge-fk">FK</span></td>
+      <td class="col-type">INT FK NULL → agent_profiles</td>
+      <td class="col-desc">Handling agent if applicable</td>
+    </tr><tr>
+      <td class="col-name">booking_type</td>
+      <td class="col-type">ENUM</td>
+      <td class="col-desc">package | ai_trip | custom_quote</td>
+    </tr><tr>
+      <td class="col-name">booking_status</td>
+      <td class="col-type">ENUM</td>
+      <td class="col-desc">pending | confirmed | cancelled | refunded | failed</td>
+    </tr><tr>
+      <td class="col-name">subtotal_amount</td>
+      <td class="col-type">DECIMAL(12,2)</td>
+      <td class="col-desc">Items total before fees</td>
+    </tr><tr>
+      <td class="col-name">service_fee_amount</td>
+      <td class="col-type">DECIMAL(10,2)</td>
+      <td class="col-desc">Platform service fee</td>
+    </tr><tr>
+      <td class="col-name">tax_amount</td>
+      <td class="col-type">DECIMAL(10,2)</td>
+      <td class="col-desc">Tax charged</td>
+    </tr><tr>
+      <td class="col-name">discount_amount</td>
+      <td class="col-type">DECIMAL(10,2)</td>
+      <td class="col-desc">Discount applied</td>
+    </tr><tr>
+      <td class="col-name">total_amount</td>
+      <td class="col-type">DECIMAL(12,2)</td>
+      <td class="col-desc">Final amount due</td>
+    </tr><tr>
+      <td class="col-name">payment_status</td>
+      <td class="col-type">ENUM</td>
+      <td class="col-desc">unpaid | partial | paid | refunded</td>
+    </tr><tr>
+      <td class="col-name">booking_source</td>
+      <td class="col-type">ENUM('app','web','agent')</td>
+      <td class="col-desc">Origin channel</td>
+    </tr></tbody>
+    </table>
+  </div><div class="table-card" onclick="toggleTable(this)">
+    <div class="table-card-header">
+      <span class="tc-name">booking_travelers</span>
+      <span class="tc-desc">Passenger manifest — one row per traveler on a booking.</span>
+      <span class="tc-toggle">▼</span>
+    </div>
+    <table class="fields-table">
+      <thead><tr><th>Column</th><th>Type / Constraint</th><th>Description</th></tr></thead>
+      <tbody><tr>
+      <td class="col-name">id<span class="badge-pk">PK</span></td>
+      <td class="col-type">INT PK</td>
+      <td class="col-desc">Primary key</td>
+    </tr><tr>
+      <td class="col-name">booking_id<span class="badge-fk">FK</span></td>
+      <td class="col-type">INT FK → bookings</td>
+      <td class="col-desc">Parent booking</td>
+    </tr><tr>
+      <td class="col-name">full_name</td>
+      <td class="col-type">VARCHAR(200)</td>
+      <td class="col-desc">Name as on travel document</td>
+    </tr><tr>
+      <td class="col-name">date_of_birth</td>
+      <td class="col-type">DATE</td>
+      <td class="col-desc">Used for age-based pricing</td>
+    </tr><tr>
+      <td class="col-name">passport_number_encrypted<span class="badge-enc">ENC</span></td>
+      <td class="col-type">VARCHAR(500)</td>
+      <td class="col-desc">AES-encrypted passport number</td>
+    </tr><tr>
+      <td class="col-name">nationality</td>
+      <td class="col-type">VARCHAR(100)</td>
+      <td class="col-desc">Country of citizenship</td>
+    </tr><tr>
+      <td class="col-name">special_requests</td>
+      <td class="col-type">TEXT</td>
+      <td class="col-desc">Meal, accessibility, seat preferences</td>
+    </tr></tbody>
+    </table>
+  </div><div class="table-card" onclick="toggleTable(this)">
+    <div class="table-card-header">
+      <span class="tc-name">booking_items</span>
+      <span class="tc-desc">Line items — every product or service in a booking.</span>
+      <span class="tc-toggle">▼</span>
+    </div>
+    <table class="fields-table">
+      <thead><tr><th>Column</th><th>Type / Constraint</th><th>Description</th></tr></thead>
+      <tbody><tr>
+      <td class="col-name">id<span class="badge-pk">PK</span></td>
+      <td class="col-type">INT PK</td>
+      <td class="col-desc">Primary key</td>
+    </tr><tr>
+      <td class="col-name">booking_id<span class="badge-fk">FK</span></td>
+      <td class="col-type">INT FK → bookings</td>
+      <td class="col-desc">Parent booking</td>
+    </tr><tr>
+      <td class="col-name">item_type</td>
+      <td class="col-type">VARCHAR(100)</td>
+      <td class="col-desc">flight, hotel, activity, etc.</td>
+    </tr><tr>
+      <td class="col-name">reference_type</td>
+      <td class="col-type">VARCHAR(100)</td>
+      <td class="col-desc">Polymorphic source table name</td>
+    </tr><tr>
+      <td class="col-name">reference_id</td>
+      <td class="col-type">INT</td>
+      <td class="col-desc">Polymorphic source row ID</td>
+    </tr><tr>
+      <td class="col-name">title</td>
+      <td class="col-type">VARCHAR(300)</td>
+      <td class="col-desc">Display label</td>
+    </tr><tr>
+      <td class="col-name">quantity</td>
+      <td class="col-type">INT</td>
+      <td class="col-desc">Number of units</td>
+    </tr><tr>
+      <td class="col-name">unit_price</td>
+      <td class="col-type">DECIMAL(12,2)</td>
+      <td class="col-desc">Price per unit</td>
+    </tr><tr>
+      <td class="col-name">line_total</td>
+      <td class="col-type">DECIMAL(12,2)</td>
+      <td class="col-desc">quantity × unit_price</td>
+    </tr><tr>
+      <td class="col-name">status</td>
+      <td class="col-type">ENUM('active','cancelled','refunded')</td>
+      <td class="col-desc">Line item status</td>
+    </tr></tbody>
+    </table>
+  </div><div class="table-card" onclick="toggleTable(this)">
+    <div class="table-card-header">
+      <span class="tc-name">custom_quotes</span>
+      <span class="tc-desc">Agent-provided quote in response to a traveler request.</span>
+      <span class="tc-toggle">▼</span>
+    </div>
+    <table class="fields-table">
+      <thead><tr><th>Column</th><th>Type / Constraint</th><th>Description</th></tr></thead>
+      <tbody><tr>
+      <td class="col-name">id<span class="badge-pk">PK</span></td>
+      <td class="col-type">INT PK</td>
+      <td class="col-desc">Primary key</td>
+    </tr><tr>
+      <td class="col-name">user_id<span class="badge-fk">FK</span></td>
+      <td class="col-type">INT FK → users</td>
+      <td class="col-desc">Requesting traveler</td>
+    </tr><tr>
+      <td class="col-name">agent_profile_id<span class="badge-fk">FK</span></td>
+      <td class="col-type">INT FK → agent_profiles</td>
+      <td class="col-desc">Quoting agent</td>
+    </tr><tr>
+      <td class="col-name">trip_request_id<span class="badge-fk">FK</span></td>
+      <td class="col-type">INT FK NULL → trip_requests</td>
+      <td class="col-desc">Source trip request (optional)</td>
+    </tr><tr>
+      <td class="col-name">requirements_text</td>
+      <td class="col-type">TEXT</td>
+      <td class="col-desc">Traveler's custom requirements</td>
+    </tr><tr>
+      <td class="col-name">quoted_amount</td>
+      <td class="col-type">DECIMAL(12,2)</td>
+      <td class="col-desc">Final quoted price</td>
+    </tr><tr>
+      <td class="col-name">quote_status</td>
+      <td class="col-type">ENUM</td>
+      <td class="col-desc">requested | sent | accepted | rejected | expired</td>
+    </tr><tr>
+      <td class="col-name">valid_until</td>
+      <td class="col-type">TIMESTAMP NULL</td>
+      <td class="col-desc">Quote offer expiry</td>
+    </tr></tbody>
+    </table>
+  </div></div></div><div class="domain-section d7" id="domain-Wallet-System">
+      <div class="domain-section-header">
+        <span class="ds-icon">👛</span>
+        <span class="ds-name">Wallet System</span>
+        <span class="ds-count">4 tables</span>
+      </div>
+      <div class="tables-grid"><div class="table-card" onclick="toggleTable(this)">
+    <div class="table-card-header">
+      <span class="tc-name">wallets</span>
+      <span class="tc-desc">One wallet per user — holds available and locked balance.</span>
+      <span class="tc-toggle">▼</span>
+    </div>
+    <table class="fields-table">
+      <thead><tr><th>Column</th><th>Type / Constraint</th><th>Description</th></tr></thead>
+      <tbody><tr>
+      <td class="col-name">id<span class="badge-pk">PK</span></td>
+      <td class="col-type">INT PK</td>
+      <td class="col-desc">Primary key</td>
+    </tr><tr>
+      <td class="col-name">user_id<span class="badge-fk">FK</span></td>
+      <td class="col-type">INT FK → users</td>
+      <td class="col-desc">One-to-one with users</td>
+    </tr><tr>
+      <td class="col-name">wallet_number</td>
+      <td class="col-type">VARCHAR(50) UNIQUE</td>
+      <td class="col-desc">Masked identifier for display</td>
+    </tr><tr>
+      <td class="col-name">currency_code</td>
+      <td class="col-type">CHAR(3)</td>
+      <td class="col-desc">Primary wallet currency (ISO 4217)</td>
+    </tr><tr>
+      <td class="col-name">available_balance</td>
+      <td class="col-type">DECIMAL(14,2)</td>
+      <td class="col-desc">Immediately spendable funds</td>
+    </tr><tr>
+      <td class="col-name">locked_balance</td>
+      <td class="col-type">DECIMAL(14,2)</td>
+      <td class="col-desc">Held for pending bookings</td>
+    </tr><tr>
+      <td class="col-name">status</td>
+      <td class="col-type">ENUM('active','suspended','closed')</td>
+      <td class="col-desc">Wallet account status</td>
+    </tr></tbody>
+    </table>
+  </div><div class="table-card" onclick="toggleTable(this)">
+    <div class="table-card-header">
+      <span class="tc-name">wallet_transactions</span>
+      <span class="tc-desc">Double-entry ledger for all wallet movements.</span>
+      <span class="tc-toggle">▼</span>
+    </div>
+    <table class="fields-table">
+      <thead><tr><th>Column</th><th>Type / Constraint</th><th>Description</th></tr></thead>
+      <tbody><tr>
+      <td class="col-name">id<span class="badge-pk">PK</span></td>
+      <td class="col-type">INT PK</td>
+      <td class="col-desc">Primary key</td>
+    </tr><tr>
+      <td class="col-name">wallet_id<span class="badge-fk">FK</span></td>
+      <td class="col-type">INT FK → wallets</td>
+      <td class="col-desc">Owning wallet</td>
+    </tr><tr>
+      <td class="col-name">transaction_type</td>
+      <td class="col-type">ENUM</td>
+      <td class="col-desc">credit | debit | refund | hold | release | fee | adjustment</td>
+    </tr><tr>
+      <td class="col-name">reference_type</td>
+      <td class="col-type">ENUM</td>
+      <td class="col-desc">booking | payment | refund | admin | bnpl</td>
+    </tr><tr>
+      <td class="col-name">reference_id</td>
+      <td class="col-type">INT</td>
+      <td class="col-desc">ID of the referenced entity</td>
+    </tr><tr>
+      <td class="col-name">amount</td>
+      <td class="col-type">DECIMAL(14,2)</td>
+      <td class="col-desc">Transaction value</td>
+    </tr><tr>
+      <td class="col-name">direction</td>
+      <td class="col-type">ENUM('in','out')</td>
+      <td class="col-desc">Money flow direction</td>
+    </tr><tr>
+      <td class="col-name">status</td>
+      <td class="col-type">ENUM</td>
+      <td class="col-desc">pending | completed | failed | reversed</td>
+    </tr><tr>
+      <td class="col-name">processed_at</td>
+      <td class="col-type">TIMESTAMP NULL</td>
+      <td class="col-desc">Settlement timestamp</td>
+    </tr></tbody>
+    </table>
+  </div><div class="table-card" onclick="toggleTable(this)">
+    <div class="table-card-header">
+      <span class="tc-name">wallet_topups</span>
+      <span class="tc-desc">Records when a user adds funds via a payment gateway.</span>
+      <span class="tc-toggle">▼</span>
+    </div>
+    <table class="fields-table">
+      <thead><tr><th>Column</th><th>Type / Constraint</th><th>Description</th></tr></thead>
+      <tbody><tr>
+      <td class="col-name">id<span class="badge-pk">PK</span></td>
+      <td class="col-type">INT PK</td>
+      <td class="col-desc">Primary key</td>
+    </tr><tr>
+      <td class="col-name">wallet_id<span class="badge-fk">FK</span></td>
+      <td class="col-type">INT FK → wallets</td>
+      <td class="col-desc">Target wallet</td>
+    </tr><tr>
+      <td class="col-name">payment_gateway</td>
+      <td class="col-type">VARCHAR(100)</td>
+      <td class="col-desc">e.g. Stripe, PayPal, Adyen</td>
+    </tr><tr>
+      <td class="col-name">gateway_reference</td>
+      <td class="col-type">VARCHAR(200)</td>
+      <td class="col-desc">External payment transaction ID</td>
+    </tr><tr>
+      <td class="col-name">amount</td>
+      <td class="col-type">DECIMAL(14,2)</td>
+      <td class="col-desc">Topup amount</td>
+    </tr><tr>
+      <td class="col-name">status</td>
+      <td class="col-type">ENUM('pending','completed','failed')</td>
+      <td class="col-desc">Topup outcome</td>
+    </tr></tbody>
+    </table>
+  </div><div class="table-card" onclick="toggleTable(this)">
+    <div class="table-card-header">
+      <span class="tc-name">wallet_refunds</span>
+      <span class="tc-desc">Refund record linked to a booking and transaction.</span>
+      <span class="tc-toggle">▼</span>
+    </div>
+    <table class="fields-table">
+      <thead><tr><th>Column</th><th>Type / Constraint</th><th>Description</th></tr></thead>
+      <tbody><tr>
+      <td class="col-name">id<span class="badge-pk">PK</span></td>
+      <td class="col-type">INT PK</td>
+      <td class="col-desc">Primary key</td>
+    </tr><tr>
+      <td class="col-name">wallet_transaction_id<span class="badge-fk">FK</span></td>
+      <td class="col-type">INT FK → wallet_transactions</td>
+      <td class="col-desc">Credit transaction created</td>
+    </tr><tr>
+      <td class="col-name">booking_id<span class="badge-fk">FK</span></td>
+      <td class="col-type">INT FK → bookings</td>
+      <td class="col-desc">Source booking being refunded</td>
+    </tr><tr>
+      <td class="col-name">refund_reason</td>
+      <td class="col-type">TEXT</td>
+      <td class="col-desc">Agent or admin reason text</td>
+    </tr><tr>
+      <td class="col-name">refund_status</td>
+      <td class="col-type">ENUM('pending','processed','failed')</td>
+      <td class="col-desc">Processing outcome</td>
+    </tr></tbody>
+    </table>
+  </div></div></div><div class="domain-section d8" id="domain-Payments">
+      <div class="domain-section-header">
+        <span class="ds-icon">💳</span>
+        <span class="ds-name">Payments</span>
+        <span class="ds-count">2 tables</span>
+      </div>
+      <div class="tables-grid"><div class="table-card" onclick="toggleTable(this)">
+    <div class="table-card-header">
+      <span class="tc-name">payments</span>
+      <span class="tc-desc">Central payment record per transaction attempt.</span>
+      <span class="tc-toggle">▼</span>
+    </div>
+    <table class="fields-table">
+      <thead><tr><th>Column</th><th>Type / Constraint</th><th>Description</th></tr></thead>
+      <tbody><tr>
+      <td class="col-name">id<span class="badge-pk">PK</span></td>
+      <td class="col-type">INT PK</td>
+      <td class="col-desc">Primary key</td>
+    </tr><tr>
+      <td class="col-name">user_id<span class="badge-fk">FK</span></td>
+      <td class="col-type">INT FK → users</td>
+      <td class="col-desc">Paying user</td>
+    </tr><tr>
+      <td class="col-name">booking_id<span class="badge-fk">FK</span></td>
+      <td class="col-type">INT FK NULL → bookings</td>
+      <td class="col-desc">Linked booking (nullable)</td>
+    </tr><tr>
+      <td class="col-name">wallet_id<span class="badge-fk">FK</span></td>
+      <td class="col-type">INT FK NULL → wallets</td>
+      <td class="col-desc">Wallet used (nullable)</td>
+    </tr><tr>
+      <td class="col-name">payment_method</td>
+      <td class="col-type">ENUM</td>
+      <td class="col-desc">card | wallet | bank_transfer | bnpl | mixed</td>
+    </tr><tr>
+      <td class="col-name">gateway_name</td>
+      <td class="col-type">VARCHAR(100)</td>
+      <td class="col-desc">e.g. Stripe, Adyen, Checkout.com</td>
+    </tr><tr>
+      <td class="col-name">gateway_transaction_ref</td>
+      <td class="col-type">VARCHAR(300)</td>
+      <td class="col-desc">External payment ID</td>
+    </tr><tr>
+      <td class="col-name">amount</td>
+      <td class="col-type">DECIMAL(14,2)</td>
+      <td class="col-desc">Payment value</td>
+    </tr><tr>
+      <td class="col-name">payment_status</td>
+      <td class="col-type">ENUM</td>
+      <td class="col-desc">pending | completed | failed | refunded</td>
+    </tr><tr>
+      <td class="col-name">paid_at</td>
+      <td class="col-type">TIMESTAMP NULL</td>
+      <td class="col-desc">Confirmation timestamp</td>
+    </tr></tbody>
+    </table>
+  </div><div class="table-card" onclick="toggleTable(this)">
+    <div class="table-card-header">
+      <span class="tc-name">payment_splits</span>
+      <span class="tc-desc">Supports deposit + balance or mixed-method payments.</span>
+      <span class="tc-toggle">▼</span>
+    </div>
+    <table class="fields-table">
+      <thead><tr><th>Column</th><th>Type / Constraint</th><th>Description</th></tr></thead>
+      <tbody><tr>
+      <td class="col-name">id<span class="badge-pk">PK</span></td>
+      <td class="col-type">INT PK</td>
+      <td class="col-desc">Primary key</td>
+    </tr><tr>
+      <td class="col-name">payment_id<span class="badge-fk">FK</span></td>
+      <td class="col-type">INT FK → payments</td>
+      <td class="col-desc">Parent payment</td>
+    </tr><tr>
+      <td class="col-name">split_type</td>
+      <td class="col-type">ENUM</td>
+      <td class="col-desc">deposit | balance | service_fee | wallet | bnpl</td>
+    </tr><tr>
+      <td class="col-name">amount</td>
+      <td class="col-type">DECIMAL(14,2)</td>
+      <td class="col-desc">Amount for this split portion</td>
+    </tr><tr>
+      <td class="col-name">due_date</td>
+      <td class="col-type">DATE</td>
+      <td class="col-desc">When this portion is due</td>
+    </tr><tr>
+      <td class="col-name">status</td>
+      <td class="col-type">ENUM('pending','paid','overdue')</td>
+      <td class="col-desc">Split payment status</td>
+    </tr></tbody>
+    </table>
+  </div></div></div><div class="domain-section d9" id="domain-BNPL-/-Finance">
+      <div class="domain-section-header">
+        <span class="ds-icon">🏦</span>
+        <span class="ds-name">BNPL / Finance</span>
+        <span class="ds-count">3 tables</span>
+      </div>
+      <div class="tables-grid"><div class="table-card" onclick="toggleTable(this)">
+    <div class="table-card-header">
+      <span class="tc-name">finance_providers</span>
+      <span class="tc-desc">BNPL and financing partner configuration.</span>
+      <span class="tc-toggle">▼</span>
+    </div>
+    <table class="fields-table">
+      <thead><tr><th>Column</th><th>Type / Constraint</th><th>Description</th></tr></thead>
+      <tbody><tr>
+      <td class="col-name">id<span class="badge-pk">PK</span></td>
+      <td class="col-type">INT PK</td>
+      <td class="col-desc">Primary key</td>
+    </tr><tr>
+      <td class="col-name">provider_name</td>
+      <td class="col-type">VARCHAR(200)</td>
+      <td class="col-desc">e.g. Tabby, Tamara, Paidy</td>
+    </tr><tr>
+      <td class="col-name">provider_type</td>
+      <td class="col-type">VARCHAR(100)</td>
+      <td class="col-desc">bnpl | installment | credit</td>
+    </tr><tr>
+      <td class="col-name">country</td>
+      <td class="col-type">VARCHAR(100)</td>
+      <td class="col-desc">Supported country</td>
+    </tr><tr>
+      <td class="col-name">api_status</td>
+      <td class="col-type">ENUM('active','inactive','testing')</td>
+      <td class="col-desc">Integration status</td>
+    </tr></tbody>
+    </table>
+  </div><div class="table-card" onclick="toggleTable(this)">
+    <div class="table-card-header">
+      <span class="tc-name">finance_applications</span>
+      <span class="tc-desc">User's BNPL / financing application for a booking.</span>
+      <span class="tc-toggle">▼</span>
+    </div>
+    <table class="fields-table">
+      <thead><tr><th>Column</th><th>Type / Constraint</th><th>Description</th></tr></thead>
+      <tbody><tr>
+      <td class="col-name">id<span class="badge-pk">PK</span></td>
+      <td class="col-type">INT PK</td>
+      <td class="col-desc">Primary key</td>
+    </tr><tr>
+      <td class="col-name">user_id<span class="badge-fk">FK</span></td>
+      <td class="col-type">INT FK → users</td>
+      <td class="col-desc">Applicant</td>
+    </tr><tr>
+      <td class="col-name">booking_id<span class="badge-fk">FK</span></td>
+      <td class="col-type">INT FK → bookings</td>
+      <td class="col-desc">Booking being financed</td>
+    </tr><tr>
+      <td class="col-name">provider_id<span class="badge-fk">FK</span></td>
+      <td class="col-type">INT FK → finance_providers</td>
+      <td class="col-desc">Financing provider</td>
+    </tr><tr>
+      <td class="col-name">requested_amount</td>
+      <td class="col-type">DECIMAL(14,2)</td>
+      <td class="col-desc">Amount requested for financing</td>
+    </tr><tr>
+      <td class="col-name">approved_amount</td>
+      <td class="col-type">DECIMAL(14,2)</td>
+      <td class="col-desc">Amount approved (may differ)</td>
+    </tr><tr>
+      <td class="col-name">application_status</td>
+      <td class="col-type">ENUM</td>
+      <td class="col-desc">draft | submitted | approved | declined | cancelled</td>
+    </tr><tr>
+      <td class="col-name">provider_reference</td>
+      <td class="col-type">VARCHAR(200)</td>
+      <td class="col-desc">External application ID from provider</td>
+    </tr></tbody>
+    </table>
+  </div><div class="table-card" onclick="toggleTable(this)">
+    <div class="table-card-header">
+      <span class="tc-name">finance_repayment_schedules</span>
+      <span class="tc-desc">Installment schedule for an approved application.</span>
+      <span class="tc-toggle">▼</span>
+    </div>
+    <table class="fields-table">
+      <thead><tr><th>Column</th><th>Type / Constraint</th><th>Description</th></tr></thead>
+      <tbody><tr>
+      <td class="col-name">id<span class="badge-pk">PK</span></td>
+      <td class="col-type">INT PK</td>
+      <td class="col-desc">Primary key</td>
+    </tr><tr>
+      <td class="col-name">finance_application_id<span class="badge-fk">FK</span></td>
+      <td class="col-type">INT FK → finance_applications</td>
+      <td class="col-desc">Parent application</td>
+    </tr><tr>
+      <td class="col-name">installment_no</td>
+      <td class="col-type">INT</td>
+      <td class="col-desc">Sequence number (1, 2, 3…)</td>
+    </tr><tr>
+      <td class="col-name">due_date</td>
+      <td class="col-type">DATE</td>
+      <td class="col-desc">Payment due date</td>
+    </tr><tr>
+      <td class="col-name">amount</td>
+      <td class="col-type">DECIMAL(14,2)</td>
+      <td class="col-desc">Installment amount</td>
+    </tr><tr>
+      <td class="col-name">status</td>
+      <td class="col-type">ENUM</td>
+      <td class="col-desc">pending | paid | overdue | waived</td>
+    </tr><tr>
+      <td class="col-name">paid_at</td>
+      <td class="col-type">TIMESTAMP NULL</td>
+      <td class="col-desc">Actual payment date</td>
+    </tr></tbody>
+    </table>
+  </div></div></div><div class="domain-section d10" id="domain-Blogs-&amp;-Content">
+      <div class="domain-section-header">
+        <span class="ds-icon">✍️</span>
+        <span class="ds-name">Blogs &amp; Content</span>
+        <span class="ds-count">4 tables</span>
+      </div>
+      <div class="tables-grid"><div class="table-card" onclick="toggleTable(this)">
+    <div class="table-card-header">
+      <span class="tc-name">blog_categories</span>
+      <span class="tc-desc">Top-level categories for blog articles.</span>
+      <span class="tc-toggle">▼</span>
+    </div>
+    <table class="fields-table">
+      <thead><tr><th>Column</th><th>Type / Constraint</th><th>Description</th></tr></thead>
+      <tbody><tr>
+      <td class="col-name">id<span class="badge-pk">PK</span></td>
+      <td class="col-type">INT PK</td>
+      <td class="col-desc">Primary key</td>
+    </tr><tr>
+      <td class="col-name">name</td>
+      <td class="col-type">VARCHAR(100)</td>
+      <td class="col-desc">Category display name</td>
+    </tr><tr>
+      <td class="col-name">slug</td>
+      <td class="col-type">VARCHAR(120) UNIQUE</td>
+      <td class="col-desc">URL segment</td>
+    </tr><tr>
+      <td class="col-name">status</td>
+      <td class="col-type">ENUM('active','inactive')</td>
+      <td class="col-desc">Visibility status</td>
+    </tr></tbody>
+    </table>
+  </div><div class="table-card" onclick="toggleTable(this)">
+    <div class="table-card-header">
+      <span class="tc-name">blogs</span>
+      <span class="tc-desc">Travel articles authored by agents or platform admins.</span>
+      <span class="tc-toggle">▼</span>
+    </div>
+    <table class="fields-table">
+      <thead><tr><th>Column</th><th>Type / Constraint</th><th>Description</th></tr></thead>
+      <tbody><tr>
+      <td class="col-name">id<span class="badge-pk">PK</span></td>
+      <td class="col-type">INT PK</td>
+      <td class="col-desc">Primary key</td>
+    </tr><tr>
+      <td class="col-name">author_user_id<span class="badge-fk">FK</span></td>
+      <td class="col-type">INT FK → users</td>
+      <td class="col-desc">Content author</td>
+    </tr><tr>
+      <td class="col-name">category_id<span class="badge-fk">FK</span></td>
+      <td class="col-type">INT FK → blog_categories</td>
+      <td class="col-desc">Primary category</td>
+    </tr><tr>
+      <td class="col-name">destination_id<span class="badge-fk">FK</span></td>
+      <td class="col-type">INT FK NULL → destinations</td>
+      <td class="col-desc">Linked destination (nullable)</td>
+    </tr><tr>
+      <td class="col-name">title</td>
+      <td class="col-type">VARCHAR(300)</td>
+      <td class="col-desc">Article title</td>
+    </tr><tr>
+      <td class="col-name">slug</td>
+      <td class="col-type">VARCHAR(320) UNIQUE</td>
+      <td class="col-desc">SEO URL segment</td>
+    </tr><tr>
+      <td class="col-name">excerpt</td>
+      <td class="col-type">VARCHAR(600)</td>
+      <td class="col-desc">Short preview text</td>
+    </tr><tr>
+      <td class="col-name">content</td>
+      <td class="col-type">LONGTEXT</td>
+      <td class="col-desc">Full article body (Markdown / HTML)</td>
+    </tr><tr>
+      <td class="col-name">seo_title</td>
+      <td class="col-type">VARCHAR(200)</td>
+      <td class="col-desc"><title> tag override&lt;/td&gt;
+    &lt;/tr&gt;&lt;tr&gt;
+      &lt;td class="col-name"&gt;seo_description&lt;/td&gt;
+      &lt;td class="col-type"&gt;VARCHAR(400)&lt;/td&gt;
+      &lt;td class="col-desc"&gt;Meta description override&lt;/td&gt;
+    &lt;/tr&gt;&lt;tr&gt;
+      &lt;td class="col-name"&gt;status&lt;/td&gt;
+      &lt;td class="col-type"&gt;ENUM('draft','published','archived')&lt;/td&gt;
+      &lt;td class="col-desc"&gt;Content lifecycle status&lt;/td&gt;
+    &lt;/tr&gt;&lt;tr&gt;
+      &lt;td class="col-name"&gt;published_at&lt;/td&gt;
+      &lt;td class="col-type"&gt;TIMESTAMP NULL&lt;/td&gt;
+      &lt;td class="col-desc"&gt;Go-live datetime&lt;/td&gt;
+    &lt;/tr&gt;&lt;/tbody&gt;
+    &lt;/table&gt;
+  &lt;/div&gt;&lt;div class="table-card" onclick="toggleTable(this)"&gt;
+    &lt;div class="table-card-header"&gt;
+      &lt;span class="tc-name"&gt;blog_tags&lt;/span&gt;
+      &lt;span class="tc-desc"&gt;Free-text tags attached to blog articles.&lt;/span&gt;
+      &lt;span class="tc-toggle"&gt;▼&lt;/span&gt;
+    &lt;/div&gt;
+    &lt;table class="fields-table"&gt;
+      &lt;thead&gt;&lt;tr&gt;&lt;th&gt;Column&lt;/th&gt;&lt;th&gt;Type / Constraint&lt;/th&gt;&lt;th&gt;Description&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
+      &lt;tbody&gt;&lt;tr&gt;
+      &lt;td class="col-name"&gt;id&lt;span class="badge-pk"&gt;PK&lt;/span&gt;&lt;/td&gt;
+      &lt;td class="col-type"&gt;INT PK&lt;/td&gt;
+      &lt;td class="col-desc"&gt;Primary key&lt;/td&gt;
+    &lt;/tr&gt;&lt;tr&gt;
+      &lt;td class="col-name"&gt;blog_id&lt;span class="badge-fk"&gt;FK&lt;/span&gt;&lt;/td&gt;
+      &lt;td class="col-type"&gt;INT FK → blogs&lt;/td&gt;
+      &lt;td class="col-desc"&gt;Parent blog&lt;/td&gt;
+    &lt;/tr&gt;&lt;tr&gt;
+      &lt;td class="col-name"&gt;tag_name&lt;/td&gt;
+      &lt;td class="col-type"&gt;VARCHAR(100)&lt;/td&gt;
+      &lt;td class="col-desc"&gt;Tag label e.g. "budget travel"&lt;/td&gt;
+    &lt;/tr&gt;&lt;/tbody&gt;
+    &lt;/table&gt;
+  &lt;/div&gt;&lt;div class="table-card" onclick="toggleTable(this)"&gt;
+    &lt;div class="table-card-header"&gt;
+      &lt;span class="tc-name"&gt;blog_cta_links&lt;/span&gt;
+      &lt;span class="tc-desc"&gt;In-article call-to-action buttons linking to packages or destinations.&lt;/span&gt;
+      &lt;span class="tc-toggle"&gt;▼&lt;/span&gt;
+    &lt;/div&gt;
+    &lt;table class="fields-table"&gt;
+      &lt;thead&gt;&lt;tr&gt;&lt;th&gt;Column&lt;/th&gt;&lt;th&gt;Type / Constraint&lt;/th&gt;&lt;th&gt;Description&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
+      &lt;tbody&gt;&lt;tr&gt;
+      &lt;td class="col-name"&gt;id&lt;span class="badge-pk"&gt;PK&lt;/span&gt;&lt;/td&gt;
+      &lt;td class="col-type"&gt;INT PK&lt;/td&gt;
+      &lt;td class="col-desc"&gt;Primary key&lt;/td&gt;
+    &lt;/tr&gt;&lt;tr&gt;
+      &lt;td class="col-name"&gt;blog_id&lt;span class="badge-fk"&gt;FK&lt;/span&gt;&lt;/td&gt;
+      &lt;td class="col-type"&gt;INT FK → blogs&lt;/td&gt;
+      &lt;td class="col-desc"&gt;Parent blog&lt;/td&gt;
+    &lt;/tr&gt;&lt;tr&gt;
+      &lt;td class="col-name"&gt;cta_type&lt;/td&gt;
+      &lt;td class="col-type"&gt;ENUM&lt;/td&gt;
+      &lt;td class="col-desc"&gt;package | destination | trip_builder | external&lt;/td&gt;
+    &lt;/tr&gt;&lt;tr&gt;
+      &lt;td class="col-name"&gt;reference_id&lt;/td&gt;
+      &lt;td class="col-type"&gt;INT&lt;/td&gt;
+      &lt;td class="col-desc"&gt;ID of the linked entity&lt;/td&gt;
+    &lt;/tr&gt;&lt;tr&gt;
+      &lt;td class="col-name"&gt;button_text&lt;/td&gt;
+      &lt;td class="col-type"&gt;VARCHAR(100)&lt;/td&gt;
+      &lt;td class="col-desc"&gt;CTA button label&lt;/td&gt;
+    &lt;/tr&gt;&lt;tr&gt;
+      &lt;td class="col-name"&gt;sort_order&lt;/td&gt;
+      &lt;td class="col-type"&gt;INT&lt;/td&gt;
+      &lt;td class="col-desc"&gt;Ordering within article&lt;/td&gt;
+    &lt;/tr&gt;&lt;/tbody&gt;
+    &lt;/table&gt;
+  &lt;/div&gt;&lt;/div&gt;</title></td></tr></tbody></table></div></div></div><div class="domain-section d11" id="domain-Reviews-&amp;-Ratings">
+      <div class="domain-section-header">
+        <span class="ds-icon">⭐</span>
+        <span class="ds-name">Reviews &amp; Ratings</span>
+        <span class="ds-count">2 tables</span>
+      </div>
+      <div class="tables-grid"><div class="table-card" onclick="toggleTable(this)">
+    <div class="table-card-header">
+      <span class="tc-name">reviews</span>
+      <span class="tc-desc">Polymorphic review — one table for agents, packages, destinations, and trips.</span>
+      <span class="tc-toggle">▼</span>
+    </div>
+    <table class="fields-table">
+      <thead><tr><th>Column</th><th>Type / Constraint</th><th>Description</th></tr></thead>
+      <tbody><tr>
+      <td class="col-name">id<span class="badge-pk">PK</span></td>
+      <td class="col-type">INT PK</td>
+      <td class="col-desc">Primary key</td>
+    </tr><tr>
+      <td class="col-name">reviewer_user_id<span class="badge-fk">FK</span></td>
+      <td class="col-type">INT FK → users</td>
+      <td class="col-desc">Author of the review</td>
+    </tr><tr>
+      <td class="col-name">review_type</td>
+      <td class="col-type">ENUM('agent','package','destination','trip')</td>
+      <td class="col-desc">What is being reviewed</td>
+    </tr><tr>
+      <td class="col-name">reference_id</td>
+      <td class="col-type">INT</td>
+      <td class="col-desc">ID of the reviewed entity</td>
+    </tr><tr>
+      <td class="col-name">rating</td>
+      <td class="col-type">DECIMAL(2,1)</td>
+      <td class="col-desc">1.0 – 5.0 star rating</td>
+    </tr><tr>
+      <td class="col-name">title</td>
+      <td class="col-type">VARCHAR(200)</td>
+      <td class="col-desc">Short review title</td>
+    </tr><tr>
+      <td class="col-name">comment</td>
+      <td class="col-type">TEXT</td>
+      <td class="col-desc">Full review text</td>
+    </tr><tr>
+      <td class="col-name">status</td>
+      <td class="col-type">ENUM('published','hidden','flagged')</td>
+      <td class="col-desc">Moderation status</td>
+    </tr></tbody>
+    </table>
+  </div><div class="table-card" onclick="toggleTable(this)">
+    <div class="table-card-header">
+      <span class="tc-name">review_media</span>
+      <span class="tc-desc">Photos and videos attached to a review.</span>
+      <span class="tc-toggle">▼</span>
+    </div>
+    <table class="fields-table">
+      <thead><tr><th>Column</th><th>Type / Constraint</th><th>Description</th></tr></thead>
+      <tbody><tr>
+      <td class="col-name">id<span class="badge-pk">PK</span></td>
+      <td class="col-type">INT PK</td>
+      <td class="col-desc">Primary key</td>
+    </tr><tr>
+      <td class="col-name">review_id<span class="badge-fk">FK</span></td>
+      <td class="col-type">INT FK → reviews</td>
+      <td class="col-desc">Parent review</td>
+    </tr><tr>
+      <td class="col-name">file_url</td>
+      <td class="col-type">VARCHAR(500)</td>
+      <td class="col-desc">CDN URL of media asset</td>
+    </tr><tr>
+      <td class="col-name">media_type</td>
+      <td class="col-type">ENUM('image','video')</td>
+      <td class="col-desc">Media category</td>
+    </tr></tbody>
+    </table>
+  </div></div></div><div class="domain-section d12" id="domain-Notifications">
+      <div class="domain-section-header">
+        <span class="ds-icon">🔔</span>
+        <span class="ds-name">Notifications</span>
+        <span class="ds-count">4 tables</span>
+      </div>
+      <div class="tables-grid"><div class="table-card" onclick="toggleTable(this)">
+    <div class="table-card-header">
+      <span class="tc-name">notifications</span>
+      <span class="tc-desc">In-app notification inbox entries.</span>
+      <span class="tc-toggle">▼</span>
+    </div>
+    <table class="fields-table">
+      <thead><tr><th>Column</th><th>Type / Constraint</th><th>Description</th></tr></thead>
+      <tbody><tr>
+      <td class="col-name">id<span class="badge-pk">PK</span></td>
+      <td class="col-type">INT PK</td>
+      <td class="col-desc">Primary key</td>
+    </tr><tr>
+      <td class="col-name">user_id<span class="badge-fk">FK</span></td>
+      <td class="col-type">INT FK → users</td>
+      <td class="col-desc">Recipient user</td>
+    </tr><tr>
+      <td class="col-name">notification_type</td>
+      <td class="col-type">VARCHAR(100)</td>
+      <td class="col-desc">e.g. booking_confirmed, payment_due</td>
+    </tr><tr>
+      <td class="col-name">title</td>
+      <td class="col-type">VARCHAR(200)</td>
+      <td class="col-desc">Notification headline</td>
+    </tr><tr>
+      <td class="col-name">message</td>
+      <td class="col-type">TEXT</td>
+      <td class="col-desc">Notification body text</td>
+    </tr><tr>
+      <td class="col-name">reference_type</td>
+      <td class="col-type">VARCHAR(100)</td>
+      <td class="col-desc">Deep-link target table</td>
+    </tr><tr>
+      <td class="col-name">reference_id</td>
+      <td class="col-type">INT</td>
+      <td class="col-desc">Deep-link target row ID</td>
+    </tr><tr>
+      <td class="col-name">is_read</td>
+      <td class="col-type">BOOLEAN</td>
+      <td class="col-desc">Read/unread flag</td>
+    </tr></tbody>
+    </table>
+  </div><div class="table-card" onclick="toggleTable(this)">
+    <div class="table-card-header">
+      <span class="tc-name">email_logs</span>
+      <span class="tc-desc">Outbound email audit log.</span>
+      <span class="tc-toggle">▼</span>
+    </div>
+    <table class="fields-table">
+      <thead><tr><th>Column</th><th>Type / Constraint</th><th>Description</th></tr></thead>
+      <tbody><tr>
+      <td class="col-name">id<span class="badge-pk">PK</span></td>
+      <td class="col-type">INT PK</td>
+      <td class="col-desc">Primary key</td>
+    </tr><tr>
+      <td class="col-name">user_id<span class="badge-fk">FK</span></td>
+      <td class="col-type">INT FK NULL → users</td>
+      <td class="col-desc">Recipient user (nullable)</td>
+    </tr><tr>
+      <td class="col-name">email_type</td>
+      <td class="col-type">VARCHAR(100)</td>
+      <td class="col-desc">e.g. booking_confirmation, password_reset</td>
+    </tr><tr>
+      <td class="col-name">to_email</td>
+      <td class="col-type">VARCHAR(255)</td>
+      <td class="col-desc">Recipient email address</td>
+    </tr><tr>
+      <td class="col-name">subject</td>
+      <td class="col-type">VARCHAR(400)</td>
+      <td class="col-desc">Email subject line</td>
+    </tr><tr>
+      <td class="col-name">status</td>
+      <td class="col-type">ENUM('queued','sent','failed','bounced')</td>
+      <td class="col-desc">Delivery status</td>
+    </tr><tr>
+      <td class="col-name">meta_json<span class="badge-json">JSON</span></td>
+      <td class="col-type">JSON</td>
+      <td class="col-desc">ESP response / template variables</td>
+    </tr></tbody>
+    </table>
+  </div><div class="table-card" onclick="toggleTable(this)">
+    <div class="table-card-header">
+      <span class="tc-name">chat_threads</span>
+      <span class="tc-desc">1-to-1 traveler ↔ agent conversation thread.</span>
+      <span class="tc-toggle">▼</span>
+    </div>
+    <table class="fields-table">
+      <thead><tr><th>Column</th><th>Type / Constraint</th><th>Description</th></tr></thead>
+      <tbody><tr>
+      <td class="col-name">id<span class="badge-pk">PK</span></td>
+      <td class="col-type">INT PK</td>
+      <td class="col-desc">Primary key</td>
+    </tr><tr>
+      <td class="col-name">traveler_user_id<span class="badge-fk">FK</span></td>
+      <td class="col-type">INT FK → users</td>
+      <td class="col-desc">Traveler participant</td>
+    </tr><tr>
+      <td class="col-name">agent_user_id<span class="badge-fk">FK</span></td>
+      <td class="col-type">INT FK → users</td>
+      <td class="col-desc">Agent participant</td>
+    </tr><tr>
+      <td class="col-name">booking_id<span class="badge-fk">FK</span></td>
+      <td class="col-type">INT FK NULL → bookings</td>
+      <td class="col-desc">Booking context (nullable)</td>
+    </tr><tr>
+      <td class="col-name">trip_request_id<span class="badge-fk">FK</span></td>
+      <td class="col-type">INT FK NULL → trip_requests</td>
+      <td class="col-desc">Trip context (nullable)</td>
+    </tr><tr>
+      <td class="col-name">status</td>
+      <td class="col-type">ENUM('open','closed','archived')</td>
+      <td class="col-desc">Thread status</td>
+    </tr></tbody>
+    </table>
+  </div><div class="table-card" onclick="toggleTable(this)">
+    <div class="table-card-header">
+      <span class="tc-name">chat_messages</span>
+      <span class="tc-desc">Individual messages within a chat thread.</span>
+      <span class="tc-toggle">▼</span>
+    </div>
+    <table class="fields-table">
+      <thead><tr><th>Column</th><th>Type / Constraint</th><th>Description</th></tr></thead>
+      <tbody><tr>
+      <td class="col-name">id<span class="badge-pk">PK</span></td>
+      <td class="col-type">INT PK</td>
+      <td class="col-desc">Primary key</td>
+    </tr><tr>
+      <td class="col-name">thread_id<span class="badge-fk">FK</span></td>
+      <td class="col-type">INT FK → chat_threads</td>
+      <td class="col-desc">Parent thread</td>
+    </tr><tr>
+      <td class="col-name">sender_user_id<span class="badge-fk">FK</span></td>
+      <td class="col-type">INT FK → users</td>
+      <td class="col-desc">Message author</td>
+    </tr><tr>
+      <td class="col-name">message_text</td>
+      <td class="col-type">TEXT</td>
+      <td class="col-desc">Message body</td>
+    </tr><tr>
+      <td class="col-name">attachment_url</td>
+      <td class="col-type">VARCHAR(500)</td>
+      <td class="col-desc">Optional file attachment URL</td>
+    </tr><tr>
+      <td class="col-name">read_at</td>
+      <td class="col-type">TIMESTAMP NULL</td>
+      <td class="col-desc">Null until recipient reads message</td>
+    </tr></tbody>
+    </table>
+  </div></div></div><div class="domain-section d13" id="domain-Admin-&amp;-Audit">
+      <div class="domain-section-header">
+        <span class="ds-icon">🔐</span>
+        <span class="ds-name">Admin &amp; Audit</span>
+        <span class="ds-count">3 tables</span>
+      </div>
+      <div class="tables-grid"><div class="table-card" onclick="toggleTable(this)">
+    <div class="table-card-header">
+      <span class="tc-name">admin_actions</span>
+      <span class="tc-desc">Audit trail of admin operations — approvals, bans, overrides.</span>
+      <span class="tc-toggle">▼</span>
+    </div>
+    <table class="fields-table">
+      <thead><tr><th>Column</th><th>Type / Constraint</th><th>Description</th></tr></thead>
+      <tbody><tr>
+      <td class="col-name">id<span class="badge-pk">PK</span></td>
+      <td class="col-type">INT PK</td>
+      <td class="col-desc">Primary key</td>
+    </tr><tr>
+      <td class="col-name">admin_user_id<span class="badge-fk">FK</span></td>
+      <td class="col-type">INT FK → users</td>
+      <td class="col-desc">Admin who performed the action</td>
+    </tr><tr>
+      <td class="col-name">action_type</td>
+      <td class="col-type">VARCHAR(100)</td>
+      <td class="col-desc">e.g. approve_agent, suspend_user, refund_booking</td>
+    </tr><tr>
+      <td class="col-name">reference_table</td>
+      <td class="col-type">VARCHAR(100)</td>
+      <td class="col-desc">Table affected by action</td>
+    </tr><tr>
+      <td class="col-name">reference_id</td>
+      <td class="col-type">INT</td>
+      <td class="col-desc">Row ID affected by action</td>
+    </tr><tr>
+      <td class="col-name">notes</td>
+      <td class="col-type">TEXT</td>
+      <td class="col-desc">Admin's written justification</td>
+    </tr></tbody>
+    </table>
+  </div><div class="table-card" onclick="toggleTable(this)">
+    <div class="table-card-header">
+      <span class="tc-name">audit_logs</span>
+      <span class="tc-desc">System-level change tracking with old/new JSON diffs.</span>
+      <span class="tc-toggle">▼</span>
+    </div>
+    <table class="fields-table">
+      <thead><tr><th>Column</th><th>Type / Constraint</th><th>Description</th></tr></thead>
+      <tbody><tr>
+      <td class="col-name">id<span class="badge-pk">PK</span></td>
+      <td class="col-type">INT PK</td>
+      <td class="col-desc">Primary key</td>
+    </tr><tr>
+      <td class="col-name">user_id<span class="badge-fk">FK</span></td>
+      <td class="col-type">INT FK NULL → users</td>
+      <td class="col-desc">User who triggered the change</td>
+    </tr><tr>
+      <td class="col-name">event_name</td>
+      <td class="col-type">VARCHAR(200)</td>
+      <td class="col-desc">e.g. booking.status_changed</td>
+    </tr><tr>
+      <td class="col-name">entity_type</td>
+      <td class="col-type">VARCHAR(100)</td>
+      <td class="col-desc">Table name e.g. bookings</td>
+    </tr><tr>
+      <td class="col-name">entity_id</td>
+      <td class="col-type">INT</td>
+      <td class="col-desc">Row ID that changed</td>
+    </tr><tr>
+      <td class="col-name">old_values_json<span class="badge-json">JSON</span></td>
+      <td class="col-type">JSON</td>
+      <td class="col-desc">State snapshot before change</td>
+    </tr><tr>
+      <td class="col-name">new_values_json<span class="badge-json">JSON</span></td>
+      <td class="col-type">JSON</td>
+      <td class="col-desc">State snapshot after change</td>
+    </tr><tr>
+      <td class="col-name">ip_address</td>
+      <td class="col-type">VARCHAR(45)</td>
+      <td class="col-desc">IPv4 or IPv6 address</td>
+    </tr><tr>
+      <td class="col-name">user_agent</td>
+      <td class="col-type">VARCHAR(500)</td>
+      <td class="col-desc">Browser or app UA string</td>
+    </tr></tbody>
+    </table>
+  </div><div class="table-card" onclick="toggleTable(this)">
+    <div class="table-card-header">
+      <span class="tc-name">system_settings</span>
+      <span class="tc-desc">Global key-value configuration store for the platform.</span>
+      <span class="tc-toggle">▼</span>
+    </div>
+    <table class="fields-table">
+      <thead><tr><th>Column</th><th>Type / Constraint</th><th>Description</th></tr></thead>
+      <tbody><tr>
+      <td class="col-name">id<span class="badge-pk">PK</span></td>
+      <td class="col-type">INT PK</td>
+      <td class="col-desc">Primary key</td>
+    </tr><tr>
+      <td class="col-name">setting_key</td>
+      <td class="col-type">VARCHAR(200) UNIQUE</td>
+      <td class="col-desc">Config key e.g. platform.service_fee_pct</td>
+    </tr><tr>
+      <td class="col-name">setting_value</td>
+      <td class="col-type">TEXT</td>
+      <td class="col-desc">Config value (string serialized)</td>
+    </tr><tr>
+      <td class="col-name">setting_group</td>
+      <td class="col-type">VARCHAR(100)</td>
+      <td class="col-desc">Grouping namespace e.g. payments, ai, notifications</td>
+    </tr></tbody>
+    </table>
+    </div></div></div></div>
+	
+	
+	<div class="panel" id="panel-diagram">
+      <div class="section-title">Visual ERD Explorer</div>
+      <div class="section-sub">Original domain diagrams and the new high-level "Alt" views are merged below.</div>
+      
+      <div class="diagram-controls" id="diagram-tabs">
+      </div>
+      
+      <div class="mermaid-wrap">
+        <div id="mermaid-container"></div>
+      </div>
+    </div>
+	
+  </main>
+</div>
+
+<div class="scroll-top" id="scrollTop" onclick="window.scrollTo({top:0,behavior:&#39;smooth&#39;})">↑</div>
+
+<!-- Mermaid -->
+<script type="module">
+import mermaid from 'https://esm.sh/mermaid@11/dist/mermaid.esm.min.mjs';
+window._mermaid = mermaid;
+mermaid.initialize({
+  startOnLoad: false,
+  theme: 'dark',
+  fontFamily: "'Space Mono', monospace",
+  themeVariables: {
+    darkMode: true,
+    fontSize: '12px',
+    fontFamily: "'Space Mono', monospace",
+    lineColor: '#3a4470',
+    textColor: '#8b92b8',
+    primaryColor: '#1e2540',
+    primaryBorderColor: '#3a4470',
+    primaryTextColor: '#e8eaf6',
+    edgeLabelBackground: '#0b0e1a',
+    background: '#0b0e1a',
+    mainBkg: '#1e2540',
+    nodeBorder: '#3a4470',
+    clusterBkg: '#111526',
+  },
+});
+window._mermaidReady = true;
+if (window._pendingDiagram) renderDiagram(window._pendingDiagram);
+</script>
+
+<script>
+// ── Schema Data ──────────────────────────────────────────────
+const DOMAINS = [
+  {
+    id: 'd0', name: 'User Management', icon: '👤',
+    desc: 'Login, profiles, and AI personalization preferences for all user types.',
+    tables: [
+      { name: 'users', desc: 'Login and identity record for every platform user.',
+        fields: [
+          {col:'id',type:'INT PK',desc:'Auto-increment primary key',pk:true},
+          {col:'uuid',type:'CHAR(36)',desc:'Unique UUID for external references'},
+          {col:'first_name',type:'VARCHAR(100)',desc:"User's first name"},
+          {col:'last_name',type:'VARCHAR(100)',desc:"User's last name"},
+          {col:'email',type:'VARCHAR(255) UNIQUE',desc:'Login email address'},
+          {col:'phone',type:'VARCHAR(30)',desc:'Optional phone number'},
+          {col:'password_hash',type:'VARCHAR(255)',desc:'Bcrypt / Argon2 hash'},
+          {col:'role_type',type:"ENUM('traveler','agent','admin','support')",desc:'User role'},
+          {col:'status',type:"ENUM('active','suspended','pending','deleted')",desc:'Account status'},
+          {col:'email_verified_at',type:'TIMESTAMP NULL',desc:'Null until email confirmed'},
+          {col:'last_login_at',type:'TIMESTAMP NULL',desc:'Last successful login'},
+          {col:'created_at',type:'TIMESTAMP',desc:'Record creation time'},
+          {col:'updated_at',type:'TIMESTAMP',desc:'Last update time'},
+        ]},
+      { name: 'user_profiles', desc: 'General profile extension — 1-to-1 with users.',
+        fields: [
+          {col:'id',type:'INT PK',desc:'Primary key',pk:true},
+          {col:'user_id',type:'INT FK → users',desc:'One-to-one extension',fk:true},
+          {col:'profile_photo',type:'VARCHAR(500)',desc:'CDN URL of avatar'},
+          {col:'date_of_birth',type:'DATE',desc:'Optional DOB'},
+          {col:'gender',type:'VARCHAR(20)',desc:'Optional gender identity'},
+          {col:'country',type:'VARCHAR(100)',desc:'Home country'},
+          {col:'city',type:'VARCHAR(100)',desc:'Home city'},
+          {col:'preferred_currency',type:'VARCHAR(10)',desc:'ISO 4217 code e.g. USD'},
+          {col:'preferred_language',type:'VARCHAR(10)',desc:'ISO 639-1 code e.g. en'},
+          {col:'timezone',type:'VARCHAR(60)',desc:'IANA timezone string'},
+          {col:'bio',type:'TEXT',desc:'Free-text self description'},
+        ]},
+      { name: 'user_preferences', desc: 'AI personalization signals stored per user.',
+        fields: [
+          {col:'id',type:'INT PK',desc:'Primary key',pk:true},
+          {col:'user_id',type:'INT FK → users',desc:'Owning user',fk:true},
+          {col:'budget_preference',type:"ENUM('budget','balanced','premium')",desc:'Spending tier preference'},
+          {col:'travel_style',type:'ENUM',desc:'family | luxury | backpacking | adventure | honeymoon | business'},
+          {col:'preferred_destinations_json',type:'JSON',desc:'Array of destination IDs/slugs',json:true},
+          {col:'preferred_airlines_json',type:'JSON',desc:'IATA airline codes',json:true},
+          {col:'preferred_accommodation_type_json',type:'JSON',desc:'hotel, villa, hostel, etc.',json:true},
+          {col:'food_preferences_json',type:'JSON',desc:'Dietary flags and cuisine types',json:true},
+          {col:'activity_preferences_json',type:'JSON',desc:'Hiking, beach, culture, etc.',json:true},
+          {col:'special_requirements_json',type:'JSON',desc:'Accessibility, medical needs',json:true},
+        ]},
+    ]
+  },
+  {
+    id: 'd1', name: 'Traveler Profiles', icon: '🧳',
+    desc: 'Passport details, companion travelers, and emergency contacts.',
+    tables: [
+      { name: 'traveler_profiles', desc: 'Traveler-specific travel document and emergency info.',
+        fields: [
+          {col:'id',type:'INT PK',desc:'Primary key',pk:true},
+          {col:'user_id',type:'INT FK → users',desc:'One-to-one with users',fk:true},
+          {col:'passport_name',type:'VARCHAR(200)',desc:'Name exactly as on passport'},
+          {col:'nationality',type:'VARCHAR(100)',desc:'Country of citizenship'},
+          {col:'emergency_contact_name',type:'VARCHAR(200)',desc:'Next-of-kin name'},
+          {col:'emergency_contact_phone',type:'VARCHAR(30)',desc:'Emergency phone number'},
+          {col:'frequent_flyer_details_json',type:'JSON',desc:'Array of {airline, number}',json:true},
+          {col:'default_travelers_count',type:'INT',desc:'Default headcount for trip searches'},
+        ]},
+      { name: 'traveler_companions', desc: 'Saved co-travelers — family members or colleagues.',
+        fields: [
+          {col:'id',type:'INT PK',desc:'Primary key',pk:true},
+          {col:'traveler_profile_id',type:'INT FK → traveler_profiles',desc:'Owner profile',fk:true},
+          {col:'full_name',type:'VARCHAR(200)',desc:"Companion's full name"},
+          {col:'relationship',type:'VARCHAR(50)',desc:'e.g. spouse, child, colleague'},
+          {col:'date_of_birth',type:'DATE',desc:'Used for infant/child pricing'},
+          {col:'passport_number_encrypted',type:'VARCHAR(500)',desc:'Encrypted at rest',enc:true},
+          {col:'nationality',type:'VARCHAR(100)',desc:'Country of citizenship'},
+          {col:'special_needs',type:'TEXT',desc:'Dietary or accessibility requirements'},
+        ]},
+    ]
+  },
+  {
+    id: 'd2', name: 'Agent Management', icon: '🏢',
+    desc: 'Company records, agent accounts, and KYC compliance documents.',
+    tables: [
+      { name: 'agent_companies', desc: 'Travel company master record — one row per registered business.',
+        fields: [
+          {col:'id',type:'INT PK',desc:'Primary key',pk:true},
+          {col:'company_name',type:'VARCHAR(200)',desc:'Trading name'},
+          {col:'legal_name',type:'VARCHAR(200)',desc:'Registered legal name'},
+          {col:'registration_number',type:'VARCHAR(100)',desc:'Company registration number'},
+          {col:'tax_number',type:'VARCHAR(100)',desc:'VAT / Tax ID'},
+          {col:'country',type:'VARCHAR(100)',desc:'HQ country'},
+          {col:'city',type:'VARCHAR(100)',desc:'HQ city'},
+          {col:'website',type:'VARCHAR(300)',desc:'Company website URL'},
+          {col:'status',type:"ENUM('pending','approved','rejected','suspended')",desc:'Admin-controlled status'},
+          {col:'verified_at',type:'TIMESTAMP NULL',desc:'Admin approval timestamp'},
+        ]},
+      { name: 'agent_profiles', desc: 'Individual agent user linked to a parent company.',
+        fields: [
+          {col:'id',type:'INT PK',desc:'Primary key',pk:true},
+          {col:'user_id',type:'INT FK → users',desc:'Login account for this agent',fk:true},
+          {col:'company_id',type:'INT FK → agent_companies',desc:'Parent company',fk:true},
+          {col:'job_title',type:'VARCHAR(150)',desc:'e.g. Senior Travel Consultant'},
+          {col:'specialization',type:'VARCHAR(200)',desc:'e.g. Luxury, Adventure, Honeymoon'},
+          {col:'years_experience',type:'INT',desc:'Years in travel industry'},
+          {col:'rating_average',type:'DECIMAL(3,2)',desc:'Calculated average from reviews'},
+          {col:'total_reviews',type:'INT',desc:'Denormalized review count'},
+          {col:'is_featured',type:'BOOLEAN',desc:'Promoted in search results'},
+        ]},
+      { name: 'agent_documents', desc: 'KYC and compliance documents for company verification.',
+        fields: [
+          {col:'id',type:'INT PK',desc:'Primary key',pk:true},
+          {col:'company_id',type:'INT FK → agent_companies',desc:'Owning company',fk:true},
+          {col:'document_type',type:'VARCHAR(100)',desc:'e.g. trade_license, passport, insurance'},
+          {col:'file_url',type:'VARCHAR(500)',desc:'Secure storage URL'},
+          {col:'verification_status',type:"ENUM('pending','verified','rejected')",desc:'Review status'},
+          {col:'verified_by',type:'INT',desc:'Admin user ID who reviewed'},
+          {col:'verified_at',type:'TIMESTAMP NULL',desc:'Date of verification decision'},
+        ]},
+    ]
+  },
+  {
+    id: 'd3', name: 'Destinations', icon: '🗺',
+    desc: 'Countries, cities, destination content, and gallery images.',
+    tables: [
+      { name: 'countries', desc: 'Country master list with ISO codes.',
+        fields: [
+          {col:'id',type:'INT PK',desc:'Primary key',pk:true},
+          {col:'name',type:'VARCHAR(100)',desc:'Full country name'},
+          {col:'iso_code',type:'CHAR(3) UNIQUE',desc:'ISO 3166-1 alpha-3 code'},
+          {col:'currency_code',type:'CHAR(3)',desc:'Default ISO 4217 currency'},
+          {col:'status',type:"ENUM('active','inactive')",desc:'Active in platform'},
+        ]},
+      { name: 'cities', desc: 'City and airport lookup table.',
+        fields: [
+          {col:'id',type:'INT PK',desc:'Primary key',pk:true},
+          {col:'country_id',type:'INT FK → countries',desc:'Parent country',fk:true},
+          {col:'name',type:'VARCHAR(150)',desc:'City display name'},
+          {col:'state_region',type:'VARCHAR(150)',desc:'State or province'},
+          {col:'iata_code',type:'CHAR(3)',desc:'Airport IATA code (optional)'},
+          {col:'latitude',type:'DECIMAL(10,7)',desc:'GPS latitude'},
+          {col:'longitude',type:'DECIMAL(10,7)',desc:'GPS longitude'},
+        ]},
+      { name: 'destinations', desc: 'Core travel destination with content and metadata.',
+        fields: [
+          {col:'id',type:'INT PK',desc:'Primary key',pk:true},
+          {col:'country_id',type:'INT FK → countries',desc:'Parent country',fk:true},
+          {col:'city_id',type:'INT FK NULL → cities',desc:'Linked city (nullable)',fk:true},
+          {col:'destination_name',type:'VARCHAR(200)',desc:'Display name'},
+          {col:'slug',type:'VARCHAR(220) UNIQUE',desc:'URL-friendly identifier'},
+          {col:'destination_type',type:'ENUM',desc:'city | island | country | region | attraction'},
+          {col:'average_budget_min',type:'DECIMAL(10,2)',desc:'Lower budget estimate'},
+          {col:'average_budget_max',type:'DECIMAL(10,2)',desc:'Upper budget estimate'},
+          {col:'best_travel_months_json',type:'JSON',desc:'Array of month numbers 1–12',json:true},
+          {col:'travel_tags_json',type:'JSON',desc:'Tags for search indexing',json:true},
+          {col:'popularity_score',type:'DECIMAL(5,2)',desc:'Algorithmically calculated score'},
+          {col:'status',type:"ENUM('active','inactive','draft')",desc:'Content status'},
+        ]},
+      { name: 'destination_images', desc: 'Gallery images attached to a destination.',
+        fields: [
+          {col:'id',type:'INT PK',desc:'Primary key',pk:true},
+          {col:'destination_id',type:'INT FK → destinations',desc:'Parent destination',fk:true},
+          {col:'image_url',type:'VARCHAR(500)',desc:'CDN URL'},
+          {col:'caption',type:'VARCHAR(300)',desc:'Alt text or caption'},
+          {col:'sort_order',type:'INT',desc:'Display order'},
+        ]},
+    ]
+  },
+  {
+    id: 'd4', name: 'Packages', icon: '📦',
+    desc: 'Agent-listed travel deals with pricing tiers, available dates, and inclusions.',
+    tables: [
+      { name: 'packages', desc: 'Travel deal created and published by an agent.',
+        fields: [
+          {col:'id',type:'INT PK',desc:'Primary key',pk:true},
+          {col:'company_id',type:'INT FK → agent_companies',desc:'Publishing company',fk:true},
+          {col:'agent_profile_id',type:'INT FK → agent_profiles',desc:'Publishing agent',fk:true},
+          {col:'destination_id',type:'INT FK → destinations',desc:'Primary destination',fk:true},
+          {col:'package_name',type:'VARCHAR(200)',desc:'Display name'},
+          {col:'slug',type:'VARCHAR(220) UNIQUE',desc:'URL-friendly identifier'},
+          {col:'package_type',type:'ENUM',desc:'budget | premium | honeymoon | family | adventure | business'},
+          {col:'duration_days',type:'INT',desc:'Trip length in days'},
+          {col:'base_price',type:'DECIMAL(12,2)',desc:'Starting price per person'},
+          {col:'service_fee_type',type:"ENUM('flat','percentage')",desc:'Fee calculation method'},
+          {col:'is_customizable',type:'BOOLEAN',desc:'Allows AI trip integration'},
+          {col:'status',type:"ENUM('draft','published','archived')",desc:'Publication status'},
+          {col:'featured_until',type:'TIMESTAMP NULL',desc:'Paid promotion expiry date'},
+        ]},
+      { name: 'package_inclusions', desc: 'Itemised inclusions (flights, hotels, meals, etc.).',
+        fields: [
+          {col:'id',type:'INT PK',desc:'Primary key',pk:true},
+          {col:'package_id',type:'INT FK → packages',desc:'Parent package',fk:true},
+          {col:'inclusion_type',type:'ENUM',desc:'flight | hotel | activity | transport | meal | insurance | visa_support'},
+          {col:'title',type:'VARCHAR(200)',desc:'Short label'},
+          {col:'quantity',type:'INT',desc:'Number of units included'},
+          {col:'sort_order',type:'INT',desc:'Display ordering'},
+        ]},
+      { name: 'package_pricing_tiers', desc: 'Price matrix by traveler count and room type.',
+        fields: [
+          {col:'id',type:'INT PK',desc:'Primary key',pk:true},
+          {col:'package_id',type:'INT FK → packages',desc:'Parent package',fk:true},
+          {col:'traveler_count_min',type:'INT',desc:'Min pax for this tier'},
+          {col:'traveler_count_max',type:'INT',desc:'Max pax for this tier'},
+          {col:'room_type',type:'VARCHAR(100)',desc:'e.g. single, double, triple'},
+          {col:'travel_class',type:'VARCHAR(50)',desc:'e.g. economy, business'},
+          {col:'price_per_person',type:'DECIMAL(12,2)',desc:'Final per-pax price for this tier'},
+        ]},
+      { name: 'package_dates', desc: 'Available departure windows with capacity.',
+        fields: [
+          {col:'id',type:'INT PK',desc:'Primary key',pk:true},
+          {col:'package_id',type:'INT FK → packages',desc:'Parent package',fk:true},
+          {col:'departure_date',type:'DATE',desc:'Trip start date'},
+          {col:'return_date',type:'DATE',desc:'Trip end date'},
+          {col:'available_slots',type:'INT',desc:'Remaining open seats'},
+          {col:'status',type:"ENUM('open','full','cancelled')",desc:'Date availability status'},
+        ]},
+      { name: 'package_media', desc: 'Photos, videos, and brochures for a package.',
+        fields: [
+          {col:'id',type:'INT PK',desc:'Primary key',pk:true},
+          {col:'package_id',type:'INT FK → packages',desc:'Parent package',fk:true},
+          {col:'media_type',type:"ENUM('image','video','brochure')",desc:'Media category'},
+          {col:'file_url',type:'VARCHAR(500)',desc:'CDN URL of the asset'},
+          {col:'sort_order',type:'INT',desc:'Display ordering'},
+        ]},
+    ]
+  },
+  {
+    id: 'd5', name: 'AI Trip Builder', icon: '🤖',
+    desc: 'Trip requests, AI-generated plans, itinerary items, versioning, and swap options.',
+    tables: [
+      { name: 'trip_requests', desc: 'Raw user input that triggers the AI planning pipeline.',
+        fields: [
+          {col:'id',type:'INT PK',desc:'Primary key',pk:true},
+          {col:'user_id',type:'INT FK → users',desc:'Requesting traveler',fk:true},
+          {col:'search_query',type:'TEXT',desc:'Natural language trip query'},
+          {col:'origin_city_id',type:'INT FK NULL → cities',desc:'Departure city',fk:true},
+          {col:'destination_id',type:'INT FK NULL → destinations',desc:'Target destination',fk:true},
+          {col:'travel_start_date',type:'DATE',desc:'Earliest departure date'},
+          {col:'travel_end_date',type:'DATE',desc:'Latest return date'},
+          {col:'traveler_count',type:'INT',desc:'Total travelers'},
+          {col:'adult_count',type:'INT',desc:'Adults (pricing factor)'},
+          {col:'child_count',type:'INT',desc:'Children (pricing factor)'},
+          {col:'infant_count',type:'INT',desc:'Infants (pricing factor)'},
+          {col:'budget_min',type:'DECIMAL(12,2)',desc:'Lower budget bound'},
+          {col:'budget_max',type:'DECIMAL(12,2)',desc:'Upper budget bound'},
+          {col:'travel_mode',type:'ENUM',desc:'budget_friendly | leisure_first | balanced'},
+          {col:'preferences_json',type:'JSON',desc:'Merged AI personalization payload',json:true},
+          {col:'status',type:'ENUM',desc:'submitted | processing | completed | abandoned'},
+        ]},
+      { name: 'trip_plans', desc: 'AI-generated itinerary header record.',
+        fields: [
+          {col:'id',type:'INT PK',desc:'Primary key',pk:true},
+          {col:'trip_request_id',type:'INT FK → trip_requests',desc:'Source request',fk:true},
+          {col:'user_id',type:'INT FK → users',desc:'Plan owner',fk:true},
+          {col:'plan_name',type:'VARCHAR(200)',desc:'Auto-generated plan name'},
+          {col:'plan_type',type:'ENUM',desc:'budget | balanced | premium | agent_custom'},
+          {col:'total_estimated_cost',type:'DECIMAL(12,2)',desc:'Sum of all item costs + fee'},
+          {col:'service_fee_amount',type:'DECIMAL(10,2)',desc:'Platform service fee'},
+          {col:'wallet_eligible',type:'BOOLEAN',desc:'Can use wallet balance for payment'},
+          {col:'ai_confidence_score',type:'DECIMAL(5,2)',desc:'0–100 AI quality/confidence score'},
+          {col:'status',type:'ENUM',desc:'draft | finalized | booked | expired'},
+        ]},
+      { name: 'trip_plan_items', desc: 'Individual day-by-day itinerary components.',
+        fields: [
+          {col:'id',type:'INT PK',desc:'Primary key',pk:true},
+          {col:'trip_plan_id',type:'INT FK → trip_plans',desc:'Parent plan',fk:true},
+          {col:'item_type',type:'ENUM',desc:'flight | hotel | activity | transport | transfer | meal | visa | insurance'},
+          {col:'day_number',type:'INT',desc:'Which day of the trip (1-based)'},
+          {col:'title',type:'VARCHAR(300)',desc:'Short item label'},
+          {col:'vendor_source',type:'VARCHAR(200)',desc:'API source (Amadeus, Booking.com…)'},
+          {col:'base_cost',type:'DECIMAL(12,2)',desc:'Vendor base price'},
+          {col:'service_fee',type:'DECIMAL(10,2)',desc:'Platform add-on fee'},
+          {col:'total_cost',type:'DECIMAL(12,2)',desc:'base_cost + service_fee'},
+          {col:'meta_json',type:'JSON',desc:'Raw API response / provider payload',json:true},
+          {col:'sort_order',type:'INT',desc:'Display ordering within the day'},
+        ]},
+      { name: 'trip_plan_versions', desc: 'Full plan snapshot captured on every edit.',
+        fields: [
+          {col:'id',type:'INT PK',desc:'Primary key',pk:true},
+          {col:'trip_plan_id',type:'INT FK → trip_plans',desc:'Parent plan',fk:true},
+          {col:'version_no',type:'INT',desc:'Incrementing version number'},
+          {col:'change_summary',type:'TEXT',desc:'Human-readable diff summary'},
+          {col:'full_plan_json',type:'JSON',desc:'Complete serialized plan state',json:true},
+          {col:'created_by_type',type:'ENUM',desc:'ai | user | agent | admin'},
+        ]},
+      { name: 'trip_plan_saved_options', desc: 'Swappable alternative options per itinerary item.',
+        fields: [
+          {col:'id',type:'INT PK',desc:'Primary key',pk:true},
+          {col:'trip_plan_id',type:'INT FK → trip_plans',desc:'Parent plan',fk:true},
+          {col:'trip_plan_item_id',type:'INT FK → trip_plan_items',desc:'Item this is an alternative for',fk:true},
+          {col:'option_type',type:'VARCHAR(100)',desc:'flight, hotel, activity, etc.'},
+          {col:'option_title',type:'VARCHAR(300)',desc:'Display label for the option'},
+          {col:'option_cost',type:'DECIMAL(12,2)',desc:'Cost of this alternative'},
+          {col:'meta_json',type:'JSON',desc:'Provider details needed for booking',json:true},
+        ]},
+    ]
+  },
+  {
+    id: 'd6', name: 'Bookings & Orders', icon: '📋',
+    desc: 'Booking master, passenger manifest, line items, and custom agent quotes.',
+    tables: [
+      { name: 'bookings', desc: 'Master booking record — one row per confirmed purchase.',
+        fields: [
+          {col:'id',type:'INT PK',desc:'Primary key',pk:true},
+          {col:'booking_number',type:'VARCHAR(30) UNIQUE',desc:'Human-readable ref e.g. TRV-20260001'},
+          {col:'user_id',type:'INT FK → users',desc:'Booking traveler',fk:true},
+          {col:'package_id',type:'INT FK NULL → packages',desc:'If package booking (nullable)',fk:true},
+          {col:'trip_plan_id',type:'INT FK NULL → trip_plans',desc:'If AI trip booking (nullable)',fk:true},
+          {col:'agent_profile_id',type:'INT FK NULL → agent_profiles',desc:'Handling agent if applicable',fk:true},
+          {col:'booking_type',type:'ENUM',desc:'package | ai_trip | custom_quote'},
+          {col:'booking_status',type:'ENUM',desc:'pending | confirmed | cancelled | refunded | failed'},
+          {col:'subtotal_amount',type:'DECIMAL(12,2)',desc:'Items total before fees'},
+          {col:'service_fee_amount',type:'DECIMAL(10,2)',desc:'Platform service fee'},
+          {col:'tax_amount',type:'DECIMAL(10,2)',desc:'Tax charged'},
+          {col:'discount_amount',type:'DECIMAL(10,2)',desc:'Discount applied'},
+          {col:'total_amount',type:'DECIMAL(12,2)',desc:'Final amount due'},
+          {col:'payment_status',type:'ENUM',desc:'unpaid | partial | paid | refunded'},
+          {col:'booking_source',type:"ENUM('app','web','agent')",desc:'Origin channel'},
+        ]},
+      { name: 'booking_travelers', desc: 'Passenger manifest — one row per traveler on a booking.',
+        fields: [
+          {col:'id',type:'INT PK',desc:'Primary key',pk:true},
+          {col:'booking_id',type:'INT FK → bookings',desc:'Parent booking',fk:true},
+          {col:'full_name',type:'VARCHAR(200)',desc:'Name as on travel document'},
+          {col:'date_of_birth',type:'DATE',desc:'Used for age-based pricing'},
+          {col:'passport_number_encrypted',type:'VARCHAR(500)',desc:'AES-encrypted passport number',enc:true},
+          {col:'nationality',type:'VARCHAR(100)',desc:'Country of citizenship'},
+          {col:'special_requests',type:'TEXT',desc:'Meal, accessibility, seat preferences'},
+        ]},
+      { name: 'booking_items', desc: 'Line items — every product or service in a booking.',
+        fields: [
+          {col:'id',type:'INT PK',desc:'Primary key',pk:true},
+          {col:'booking_id',type:'INT FK → bookings',desc:'Parent booking',fk:true},
+          {col:'item_type',type:'VARCHAR(100)',desc:'flight, hotel, activity, etc.'},
+          {col:'reference_type',type:'VARCHAR(100)',desc:'Polymorphic source table name'},
+          {col:'reference_id',type:'INT',desc:'Polymorphic source row ID'},
+          {col:'title',type:'VARCHAR(300)',desc:'Display label'},
+          {col:'quantity',type:'INT',desc:'Number of units'},
+          {col:'unit_price',type:'DECIMAL(12,2)',desc:'Price per unit'},
+          {col:'line_total',type:'DECIMAL(12,2)',desc:'quantity × unit_price'},
+          {col:'status',type:"ENUM('active','cancelled','refunded')",desc:'Line item status'},
+        ]},
+      { name: 'custom_quotes', desc: 'Agent-provided quote in response to a traveler request.',
+        fields: [
+          {col:'id',type:'INT PK',desc:'Primary key',pk:true},
+          {col:'user_id',type:'INT FK → users',desc:'Requesting traveler',fk:true},
+          {col:'agent_profile_id',type:'INT FK → agent_profiles',desc:'Quoting agent',fk:true},
+          {col:'trip_request_id',type:'INT FK NULL → trip_requests',desc:'Source trip request (optional)',fk:true},
+          {col:'requirements_text',type:'TEXT',desc:"Traveler's custom requirements"},
+          {col:'quoted_amount',type:'DECIMAL(12,2)',desc:'Final quoted price'},
+          {col:'quote_status',type:'ENUM',desc:'requested | sent | accepted | rejected | expired'},
+          {col:'valid_until',type:'TIMESTAMP NULL',desc:'Quote offer expiry'},
+        ]},
+    ]
+  },
+  {
+    id: 'd7', name: 'Wallet System', icon: '👛',
+    desc: 'User wallet, double-entry ledger, topups, and refunds.',
+    tables: [
+      { name: 'wallets', desc: 'One wallet per user — holds available and locked balance.',
+        fields: [
+          {col:'id',type:'INT PK',desc:'Primary key',pk:true},
+          {col:'user_id',type:'INT FK → users',desc:'One-to-one with users',fk:true},
+          {col:'wallet_number',type:'VARCHAR(50) UNIQUE',desc:'Masked identifier for display'},
+          {col:'currency_code',type:'CHAR(3)',desc:'Primary wallet currency (ISO 4217)'},
+          {col:'available_balance',type:'DECIMAL(14,2)',desc:'Immediately spendable funds'},
+          {col:'locked_balance',type:'DECIMAL(14,2)',desc:'Held for pending bookings'},
+          {col:'status',type:"ENUM('active','suspended','closed')",desc:'Wallet account status'},
+        ]},
+      { name: 'wallet_transactions', desc: 'Double-entry ledger for all wallet movements.',
+        fields: [
+          {col:'id',type:'INT PK',desc:'Primary key',pk:true},
+          {col:'wallet_id',type:'INT FK → wallets',desc:'Owning wallet',fk:true},
+          {col:'transaction_type',type:'ENUM',desc:'credit | debit | refund | hold | release | fee | adjustment'},
+          {col:'reference_type',type:'ENUM',desc:'booking | payment | refund | admin | bnpl'},
+          {col:'reference_id',type:'INT',desc:'ID of the referenced entity'},
+          {col:'amount',type:'DECIMAL(14,2)',desc:'Transaction value'},
+          {col:'direction',type:"ENUM('in','out')",desc:'Money flow direction'},
+          {col:'status',type:'ENUM',desc:'pending | completed | failed | reversed'},
+          {col:'processed_at',type:'TIMESTAMP NULL',desc:'Settlement timestamp'},
+        ]},
+      { name: 'wallet_topups', desc: 'Records when a user adds funds via a payment gateway.',
+        fields: [
+          {col:'id',type:'INT PK',desc:'Primary key',pk:true},
+          {col:'wallet_id',type:'INT FK → wallets',desc:'Target wallet',fk:true},
+          {col:'payment_gateway',type:'VARCHAR(100)',desc:'e.g. Stripe, PayPal, Adyen'},
+          {col:'gateway_reference',type:'VARCHAR(200)',desc:'External payment transaction ID'},
+          {col:'amount',type:'DECIMAL(14,2)',desc:'Topup amount'},
+          {col:'status',type:"ENUM('pending','completed','failed')",desc:'Topup outcome'},
+        ]},
+      { name: 'wallet_refunds', desc: 'Refund record linked to a booking and transaction.',
+        fields: [
+          {col:'id',type:'INT PK',desc:'Primary key',pk:true},
+          {col:'wallet_transaction_id',type:'INT FK → wallet_transactions',desc:'Credit transaction created',fk:true},
+          {col:'booking_id',type:'INT FK → bookings',desc:'Source booking being refunded',fk:true},
+          {col:'refund_reason',type:'TEXT',desc:'Agent or admin reason text'},
+          {col:'refund_status',type:"ENUM('pending','processed','failed')",desc:'Processing outcome'},
+        ]},
+    ]
+  },
+  {
+    id: 'd8', name: 'Payments', icon: '💳',
+    desc: 'Central payment records and deposit/balance split support.',
+    tables: [
+      { name: 'payments', desc: 'Central payment record per transaction attempt.',
+        fields: [
+          {col:'id',type:'INT PK',desc:'Primary key',pk:true},
+          {col:'user_id',type:'INT FK → users',desc:'Paying user',fk:true},
+          {col:'booking_id',type:'INT FK NULL → bookings',desc:'Linked booking (nullable)',fk:true},
+          {col:'wallet_id',type:'INT FK NULL → wallets',desc:'Wallet used (nullable)',fk:true},
+          {col:'payment_method',type:'ENUM',desc:'card | wallet | bank_transfer | bnpl | mixed'},
+          {col:'gateway_name',type:'VARCHAR(100)',desc:'e.g. Stripe, Adyen, Checkout.com'},
+          {col:'gateway_transaction_ref',type:'VARCHAR(300)',desc:'External payment ID'},
+          {col:'amount',type:'DECIMAL(14,2)',desc:'Payment value'},
+          {col:'payment_status',type:'ENUM',desc:'pending | completed | failed | refunded'},
+          {col:'paid_at',type:'TIMESTAMP NULL',desc:'Confirmation timestamp'},
+        ]},
+      { name: 'payment_splits', desc: 'Supports deposit + balance or mixed-method payments.',
+        fields: [
+          {col:'id',type:'INT PK',desc:'Primary key',pk:true},
+          {col:'payment_id',type:'INT FK → payments',desc:'Parent payment',fk:true},
+          {col:'split_type',type:'ENUM',desc:'deposit | balance | service_fee | wallet | bnpl'},
+          {col:'amount',type:'DECIMAL(14,2)',desc:'Amount for this split portion'},
+          {col:'due_date',type:'DATE',desc:'When this portion is due'},
+          {col:'status',type:"ENUM('pending','paid','overdue')",desc:'Split payment status'},
+        ]},
+    ]
+  },
+  {
+    id: 'd9', name: 'BNPL / Finance', icon: '🏦',
+    desc: 'Buy-Now-Pay-Later providers, applications, and installment schedules.',
+    tables: [
+      { name: 'finance_providers', desc: 'BNPL and financing partner configuration.',
+        fields: [
+          {col:'id',type:'INT PK',desc:'Primary key',pk:true},
+          {col:'provider_name',type:'VARCHAR(200)',desc:'e.g. Tabby, Tamara, Paidy'},
+          {col:'provider_type',type:'VARCHAR(100)',desc:'bnpl | installment | credit'},
+          {col:'country',type:'VARCHAR(100)',desc:'Supported country'},
+          {col:'api_status',type:"ENUM('active','inactive','testing')",desc:'Integration status'},
+        ]},
+      { name: 'finance_applications', desc: "User's BNPL / financing application for a booking.",
+        fields: [
+          {col:'id',type:'INT PK',desc:'Primary key',pk:true},
+          {col:'user_id',type:'INT FK → users',desc:'Applicant',fk:true},
+          {col:'booking_id',type:'INT FK → bookings',desc:'Booking being financed',fk:true},
+          {col:'provider_id',type:'INT FK → finance_providers',desc:'Financing provider',fk:true},
+          {col:'requested_amount',type:'DECIMAL(14,2)',desc:'Amount requested for financing'},
+          {col:'approved_amount',type:'DECIMAL(14,2)',desc:'Amount approved (may differ)'},
+          {col:'application_status',type:'ENUM',desc:'draft | submitted | approved | declined | cancelled'},
+          {col:'provider_reference',type:'VARCHAR(200)',desc:'External application ID from provider'},
+        ]},
+      { name: 'finance_repayment_schedules', desc: 'Installment schedule for an approved application.',
+        fields: [
+          {col:'id',type:'INT PK',desc:'Primary key',pk:true},
+          {col:'finance_application_id',type:'INT FK → finance_applications',desc:'Parent application',fk:true},
+          {col:'installment_no',type:'INT',desc:'Sequence number (1, 2, 3…)'},
+          {col:'due_date',type:'DATE',desc:'Payment due date'},
+          {col:'amount',type:'DECIMAL(14,2)',desc:'Installment amount'},
+          {col:'status',type:'ENUM',desc:'pending | paid | overdue | waived'},
+          {col:'paid_at',type:'TIMESTAMP NULL',desc:'Actual payment date'},
+        ]},
+    ]
+  },
+  {
+    id: 'd10', name: 'Blogs & Content', icon: '✍️',
+    desc: 'Travel articles, categories, tags, and call-to-action links to packages.',
+    tables: [
+      { name: 'blog_categories', desc: 'Top-level categories for blog articles.',
+        fields: [
+          {col:'id',type:'INT PK',desc:'Primary key',pk:true},
+          {col:'name',type:'VARCHAR(100)',desc:'Category display name'},
+          {col:'slug',type:'VARCHAR(120) UNIQUE',desc:'URL segment'},
+          {col:'status',type:"ENUM('active','inactive')",desc:'Visibility status'},
+        ]},
+      { name: 'blogs', desc: 'Travel articles authored by agents or platform admins.',
+        fields: [
+          {col:'id',type:'INT PK',desc:'Primary key',pk:true},
+          {col:'author_user_id',type:'INT FK → users',desc:'Content author',fk:true},
+          {col:'category_id',type:'INT FK → blog_categories',desc:'Primary category',fk:true},
+          {col:'destination_id',type:'INT FK NULL → destinations',desc:'Linked destination (nullable)',fk:true},
+          {col:'title',type:'VARCHAR(300)',desc:'Article title'},
+          {col:'slug',type:'VARCHAR(320) UNIQUE',desc:'SEO URL segment'},
+          {col:'excerpt',type:'VARCHAR(600)',desc:'Short preview text'},
+          {col:'content',type:'LONGTEXT',desc:'Full article body (Markdown / HTML)'},
+          {col:'seo_title',type:'VARCHAR(200)',desc:'<title> tag override'},
+          {col:'seo_description',type:'VARCHAR(400)',desc:'Meta description override'},
+          {col:'status',type:"ENUM('draft','published','archived')",desc:'Content lifecycle status'},
+          {col:'published_at',type:'TIMESTAMP NULL',desc:'Go-live datetime'},
+        ]},
+      { name: 'blog_tags', desc: 'Free-text tags attached to blog articles.',
+        fields: [
+          {col:'id',type:'INT PK',desc:'Primary key',pk:true},
+          {col:'blog_id',type:'INT FK → blogs',desc:'Parent blog',fk:true},
+          {col:'tag_name',type:'VARCHAR(100)',desc:'Tag label e.g. "budget travel"'},
+        ]},
+      { name: 'blog_cta_links', desc: 'In-article call-to-action buttons linking to packages or destinations.',
+        fields: [
+          {col:'id',type:'INT PK',desc:'Primary key',pk:true},
+          {col:'blog_id',type:'INT FK → blogs',desc:'Parent blog',fk:true},
+          {col:'cta_type',type:'ENUM',desc:'package | destination | trip_builder | external'},
+          {col:'reference_id',type:'INT',desc:'ID of the linked entity'},
+          {col:'button_text',type:'VARCHAR(100)',desc:'CTA button label'},
+          {col:'sort_order',type:'INT',desc:'Ordering within article'},
+        ]},
+    ]
+  },
+  {
+    id: 'd11', name: 'Reviews & Ratings', icon: '⭐',
+    desc: 'Polymorphic reviews covering agents, packages, destinations, and trips.',
+    tables: [
+      { name: 'reviews', desc: 'Polymorphic review — one table for agents, packages, destinations, and trips.',
+        fields: [
+          {col:'id',type:'INT PK',desc:'Primary key',pk:true},
+          {col:'reviewer_user_id',type:'INT FK → users',desc:'Author of the review',fk:true},
+          {col:'review_type',type:"ENUM('agent','package','destination','trip')",desc:'What is being reviewed'},
+          {col:'reference_id',type:'INT',desc:'ID of the reviewed entity'},
+          {col:'rating',type:'DECIMAL(2,1)',desc:'1.0 – 5.0 star rating'},
+          {col:'title',type:'VARCHAR(200)',desc:'Short review title'},
+          {col:'comment',type:'TEXT',desc:'Full review text'},
+          {col:'status',type:"ENUM('published','hidden','flagged')",desc:'Moderation status'},
+        ]},
+      { name: 'review_media', desc: 'Photos and videos attached to a review.',
+        fields: [
+          {col:'id',type:'INT PK',desc:'Primary key',pk:true},
+          {col:'review_id',type:'INT FK → reviews',desc:'Parent review',fk:true},
+          {col:'file_url',type:'VARCHAR(500)',desc:'CDN URL of media asset'},
+          {col:'media_type',type:"ENUM('image','video')",desc:'Media category'},
+        ]},
+    ]
+  },
+  {
+    id: 'd12', name: 'Notifications', icon: '🔔',
+    desc: 'In-app alerts, email logs, and traveler ↔ agent chat threads.',
+    tables: [
+      { name: 'notifications', desc: 'In-app notification inbox entries.',
+        fields: [
+          {col:'id',type:'INT PK',desc:'Primary key',pk:true},
+          {col:'user_id',type:'INT FK → users',desc:'Recipient user',fk:true},
+          {col:'notification_type',type:'VARCHAR(100)',desc:'e.g. booking_confirmed, payment_due'},
+          {col:'title',type:'VARCHAR(200)',desc:'Notification headline'},
+          {col:'message',type:'TEXT',desc:'Notification body text'},
+          {col:'reference_type',type:'VARCHAR(100)',desc:'Deep-link target table'},
+          {col:'reference_id',type:'INT',desc:'Deep-link target row ID'},
+          {col:'is_read',type:'BOOLEAN',desc:'Read/unread flag'},
+        ]},
+      { name: 'email_logs', desc: 'Outbound email audit log.',
+        fields: [
+          {col:'id',type:'INT PK',desc:'Primary key',pk:true},
+          {col:'user_id',type:'INT FK NULL → users',desc:'Recipient user (nullable)',fk:true},
+          {col:'email_type',type:'VARCHAR(100)',desc:'e.g. booking_confirmation, password_reset'},
+          {col:'to_email',type:'VARCHAR(255)',desc:'Recipient email address'},
+          {col:'subject',type:'VARCHAR(400)',desc:'Email subject line'},
+          {col:'status',type:"ENUM('queued','sent','failed','bounced')",desc:'Delivery status'},
+          {col:'meta_json',type:'JSON',desc:'ESP response / template variables',json:true},
+        ]},
+      { name: 'chat_threads', desc: '1-to-1 traveler ↔ agent conversation thread.',
+        fields: [
+          {col:'id',type:'INT PK',desc:'Primary key',pk:true},
+          {col:'traveler_user_id',type:'INT FK → users',desc:'Traveler participant',fk:true},
+          {col:'agent_user_id',type:'INT FK → users',desc:'Agent participant',fk:true},
+          {col:'booking_id',type:'INT FK NULL → bookings',desc:'Booking context (nullable)',fk:true},
+          {col:'trip_request_id',type:'INT FK NULL → trip_requests',desc:'Trip context (nullable)',fk:true},
+          {col:'status',type:"ENUM('open','closed','archived')",desc:'Thread status'},
+        ]},
+      { name: 'chat_messages', desc: 'Individual messages within a chat thread.',
+        fields: [
+          {col:'id',type:'INT PK',desc:'Primary key',pk:true},
+          {col:'thread_id',type:'INT FK → chat_threads',desc:'Parent thread',fk:true},
+          {col:'sender_user_id',type:'INT FK → users',desc:'Message author',fk:true},
+          {col:'message_text',type:'TEXT',desc:'Message body'},
+          {col:'attachment_url',type:'VARCHAR(500)',desc:'Optional file attachment URL'},
+          {col:'read_at',type:'TIMESTAMP NULL',desc:'Null until recipient reads message'},
+        ]},
+    ]
+  },
+  {
+    id: 'd13', name: 'Admin & Audit', icon: '🔐',
+    desc: 'Admin action logs, system-level change tracking, and config settings.',
+    tables: [
+      { name: 'admin_actions', desc: 'Audit trail of admin operations — approvals, bans, overrides.',
+        fields: [
+          {col:'id',type:'INT PK',desc:'Primary key',pk:true},
+          {col:'admin_user_id',type:'INT FK → users',desc:'Admin who performed the action',fk:true},
+          {col:'action_type',type:'VARCHAR(100)',desc:'e.g. approve_agent, suspend_user, refund_booking'},
+          {col:'reference_table',type:'VARCHAR(100)',desc:'Table affected by action'},
+          {col:'reference_id',type:'INT',desc:'Row ID affected by action'},
+          {col:'notes',type:'TEXT',desc:"Admin's written justification"},
+        ]},
+      { name: 'audit_logs', desc: 'System-level change tracking with old/new JSON diffs.',
+        fields: [
+          {col:'id',type:'INT PK',desc:'Primary key',pk:true},
+          {col:'user_id',type:'INT FK NULL → users',desc:'User who triggered the change',fk:true},
+          {col:'event_name',type:'VARCHAR(200)',desc:'e.g. booking.status_changed'},
+          {col:'entity_type',type:'VARCHAR(100)',desc:'Table name e.g. bookings'},
+          {col:'entity_id',type:'INT',desc:'Row ID that changed'},
+          {col:'old_values_json',type:'JSON',desc:'State snapshot before change',json:true},
+          {col:'new_values_json',type:'JSON',desc:'State snapshot after change',json:true},
+          {col:'ip_address',type:'VARCHAR(45)',desc:'IPv4 or IPv6 address'},
+          {col:'user_agent',type:'VARCHAR(500)',desc:'Browser or app UA string'},
+        ]},
+      { name: 'system_settings', desc: 'Global key-value configuration store for the platform.',
+        fields: [
+          {col:'id',type:'INT PK',desc:'Primary key',pk:true},
+          {col:'setting_key',type:'VARCHAR(200) UNIQUE',desc:'Config key e.g. platform.service_fee_pct'},
+          {col:'setting_value',type:'TEXT',desc:'Config value (string serialized)'},
+          {col:'setting_group',type:'VARCHAR(100)',desc:'Grouping namespace e.g. payments, ai, notifications'},
+        ]},
+    ]
+  },
+];
+
+const RELATIONSHIPS = [
+  ['users','user_profiles','1','1','extends (one-to-one)'],
+  ['users','user_preferences','1','1','has (one-to-one)'],
+  ['users','traveler_profiles','1','0..1','has traveler profile'],
+  ['users','agent_profiles','1','0..1','linked to agent profile'],
+  ['users','wallets','1','1','owns wallet'],
+  ['users','trip_requests','1','0..*','submits requests'],
+  ['users','bookings','1','0..*','makes bookings'],
+  ['users','payments','1','0..*','makes payments'],
+  ['users','blogs','1','0..*','authors content'],
+  ['users','reviews','1','0..*','writes reviews'],
+  ['users','notifications','1','0..*','receives notifications'],
+  ['users','admin_actions','1','0..*','performs admin actions'],
+  ['users','audit_logs','1','0..*','tracked in audit logs'],
+  ['traveler_profiles','traveler_companions','1','0..*','saves companions'],
+  ['agent_companies','agent_profiles','1','0..*','employs agents'],
+  ['agent_companies','agent_documents','1','0..*','submits KYC documents'],
+  ['agent_companies','packages','1','0..*','lists packages'],
+  ['agent_profiles','packages','1','0..*','manages packages'],
+  ['agent_profiles','bookings','1','0..*','handles bookings'],
+  ['agent_profiles','custom_quotes','1','0..*','provides quotes'],
+  ['countries','cities','1','0..*','has cities'],
+  ['countries','destinations','1','0..*','contains destinations'],
+  ['cities','destinations','1','0..*','contains destinations'],
+  ['destinations','destination_images','1','0..*','has gallery images'],
+  ['destinations','packages','1','0..*','features in packages'],
+  ['destinations','trip_requests','1','0..*','target of trip requests'],
+  ['destinations','blogs','1','0..*','featured in blogs'],
+  ['packages','package_inclusions','1','0..*','includes items'],
+  ['packages','package_pricing_tiers','1','0..*','priced by tiers'],
+  ['packages','package_dates','1','0..*','available on dates'],
+  ['packages','package_media','1','0..*','shown via media'],
+  ['packages','bookings','1','0..*','booked as packages'],
+  ['trip_requests','trip_plans','1','0..*','generates AI plans'],
+  ['trip_requests','custom_quotes','1','0..*','triggers custom quotes'],
+  ['trip_requests','chat_threads','1','0..*','linked to chat threads'],
+  ['trip_plans','trip_plan_items','1','1..*','contains items'],
+  ['trip_plans','trip_plan_versions','1','0..*','versioned by history'],
+  ['trip_plans','trip_plan_saved_options','1','0..*','has swap alternatives'],
+  ['trip_plans','bookings','1','0..*','converted to bookings'],
+  ['trip_plan_items','trip_plan_saved_options','1','0..*','has item alternatives'],
+  ['bookings','booking_travelers','1','1..*','includes passengers'],
+  ['bookings','booking_items','1','1..*','itemised as line items'],
+  ['bookings','payments','1','0..*','paid via payments'],
+  ['bookings','wallet_refunds','1','0..*','may trigger refunds'],
+  ['bookings','finance_applications','1','0..*','financed by BNPL'],
+  ['wallets','wallet_transactions','1','0..*','records transactions'],
+  ['wallets','wallet_topups','1','0..*','topped up via gateways'],
+  ['wallets','payments','1','0..*','used in payments'],
+  ['wallet_transactions','wallet_refunds','1','0..1','refunded by'],
+  ['payments','payment_splits','1','0..*','split into portions'],
+  ['finance_providers','finance_applications','1','0..*','processes applications'],
+  ['finance_applications','finance_repayment_schedules','1','1..*','schedules installments'],
+  ['blog_categories','blogs','1','0..*','categorises articles'],
+  ['blogs','blog_tags','1','0..*','tagged with labels'],
+  ['blogs','blog_cta_links','1','0..*','links to CTAs'],
+  ['reviews','review_media','1','0..*','has media attachments'],
+  ['chat_threads','chat_messages','1','0..*','contains messages'],
+];
+
+ 
+//// 
+ const MERMAID_DOMAINS = {
+  'User & Profile': `erDiagram
+    USERS {
+      int id PK
+      uuid uuid
+      varchar first_name
+      varchar last_name
+      varchar email
+      varchar phone
+      varchar password_hash
+      enum role_type
+      enum status
+      timestamp email_verified_at
+      timestamp phone_verified_at
+      timestamp last_login_at
+      timestamp created_at
+      timestamp updated_at
+    }
+    USER_PROFILES {
+      int id PK
+      int user_id FK
+      varchar profile_photo
+      date date_of_birth
+      varchar gender
+      varchar country
+      varchar city
+      varchar preferred_currency
+      varchar preferred_language
+      varchar timezone
+      text bio
+      timestamp created_at
+      timestamp updated_at
+    }
+    USER_PREFERENCES {
+      int id PK
+      int user_id FK
+      enum budget_preference
+      enum travel_style
+      json preferred_destinations_json
+      json preferred_airlines_json
+      json preferred_accommodation_type_json
+      json food_preferences_json
+      json activity_preferences_json
+      json special_requirements_json
+      timestamp updated_at
+    }
+    TRAVELER_PROFILES {
+      int id PK
+      int user_id FK
+      varchar passport_name
+      varchar nationality
+      varchar emergency_contact_name
+      varchar emergency_contact_phone
+      json frequent_flyer_details_json
+      int default_travelers_count
+      timestamp created_at
+      timestamp updated_at
+    }
+    TRAVELER_COMPANIONS {
+      int id PK
+      int traveler_profile_id FK
+      varchar full_name
+      varchar relationship
+      date date_of_birth
+      varchar passport_number_encrypted
+      varchar nationality
+      text special_needs
+      timestamp created_at
+      timestamp updated_at
+    }
+    USERS ||--|| USER_PROFILES : "extends"
+    USERS ||--|| USER_PREFERENCES : "has"
+    USERS ||--|| TRAVELER_PROFILES : "has"
+    TRAVELER_PROFILES ||--o{ TRAVELER_COMPANIONS : "saves"`,
+
+  'Agents': `erDiagram
+    USERS { 
+      int id PK
+      string email
+      enum role_type
+    }
+    AGENT_COMPANIES {
+      int id PK
+      varchar company_name
+      varchar legal_name
+      varchar registration_number
+      varchar tax_number
+      varchar country
+      varchar city
+      text address
+      varchar website
+      varchar logo
+      text description
+      enum status
+      timestamp verified_at
+      timestamp created_at
+      timestamp updated_at
+    }
+    AGENT_PROFILES {
+      int id PK
+      int user_id FK
+      int company_id FK
+      varchar job_title
+      varchar specialization
+      int years_experience
+      varchar profile_photo
+      text about_me
+      decimal rating_average
+      int total_reviews
+      boolean is_featured
+      timestamp created_at
+      timestamp updated_at
+    }
+    AGENT_DOCUMENTS {
+      int id PK
+      int company_id FK
+      varchar document_type
+      varchar file_url
+      enum verification_status
+      int verified_by
+      timestamp verified_at
+      timestamp created_at
+    }
+    USERS ||--|| AGENT_PROFILES : "linked to"
+    AGENT_COMPANIES ||--o{ AGENT_PROFILES : "employs"
+    AGENT_COMPANIES ||--o{ AGENT_DOCUMENTS : "submits"`,
+
+  'Destinations': `erDiagram
+    COUNTRIES { 
+      int id PK
+      varchar name
+      char iso_code
+      char currency_code
+      enum status
+    }
+    CITIES { 
+      int id PK
+      int country_id FK
+      varchar name
+      varchar state_region
+      char iata_code
+      decimal latitude
+      decimal longitude
+      enum status
+    }
+    DESTINATIONS { 
+      int id PK
+      int country_id FK
+      int city_id FK
+      varchar destination_name
+      varchar slug
+      enum destination_type
+      text short_description
+      text long_description
+      varchar hero_image
+      decimal average_budget_min
+      decimal average_budget_max
+      json best_travel_months_json
+      json travel_tags_json
+      decimal popularity_score
+      enum status
+      timestamp created_at
+      timestamp updated_at
+    }
+    DESTINATION_IMAGES { 
+      int id PK
+      int destination_id FK
+      varchar image_url
+      varchar caption
+      int sort_order
+    }
+    COUNTRIES ||--o{ CITIES : "has"
+    COUNTRIES ||--o{ DESTINATIONS : "contains"
+    CITIES ||--o{ DESTINATIONS : "contains"
+    DESTINATIONS ||--o{ DESTINATION_IMAGES : "has"`,
+
+  'Packages': `erDiagram
+    PACKAGES { 
+      int id PK
+      int company_id FK
+      int agent_profile_id FK
+      int destination_id FK
+      varchar package_name
+      varchar slug
+      enum package_type
+      enum travel_mode
+      text summary
+      text description
+      int duration_days
+      int duration_nights
+      decimal base_price
+      char currency_code
+      enum service_fee_type
+      decimal service_fee_value
+      int min_travelers
+      int max_travelers
+      boolean is_customizable
+      enum status
+      timestamp featured_until
+      timestamp created_at
+      timestamp updated_at
+    }
+    PACKAGE_INCLUSIONS { 
+      int id PK
+      int package_id FK
+      enum inclusion_type
+      varchar title
+      text description
+      int quantity
+      int sort_order
+    }	
+    PACKAGE_EXCLUSIONS {
+      int id PK
+      int package_id FK
+      varchar title
+      text description
+    }	
+    PACKAGE_PRICING_TIERS { 
+      int id PK
+      int package_id FK
+      int traveler_count_min
+      int traveler_count_max
+      varchar room_type
+      varchar travel_class
+      decimal price_per_person
+      char currency_code
+    }
+    PACKAGE_DATES { 
+      int id PK
+      int package_id FK
+      date departure_date
+      date return_date
+      int available_slots
+      enum status
+    }
+    PACKAGE_MEDIA {
+      int id PK
+      int package_id FK
+      enum media_type
+      varchar file_url
+      varchar caption
+      int sort_order
+    }
+    PACKAGES ||--o{ PACKAGE_INCLUSIONS : "includes"
+    PACKAGES ||--o{ PACKAGE_EXCLUSIONS : "excludes"
+    PACKAGES ||--o{ PACKAGE_PRICING_TIERS : "priced by"
+    PACKAGES ||--o{ PACKAGE_DATES : "available on"
+    PACKAGES ||--o{ PACKAGE_MEDIA : "shown via"`,
+
+  'AI Trip': `erDiagram
+    TRIP_REQUESTS {
+      int id PK
+      int user_id FK
+      text search_query
+      int origin_city_id FK
+      int destination_id FK
+      date travel_start_date
+      date travel_end_date
+      int traveler_count
+      int adult_count
+      int child_count
+      int infant_count
+      decimal budget_min
+      decimal budget_max
+      char currency_code
+      enum travel_mode
+      varchar trip_type
+      json preferences_json
+      enum status
+      timestamp created_at
+      timestamp updated_at
+    }
+    TRIP_PLANS {
+      int id PK
+      int trip_request_id FK
+      int user_id FK
+      varchar plan_name
+      enum plan_type
+      text destination_summary
+      decimal total_estimated_cost
+      char currency_code
+      decimal service_fee_amount
+      boolean wallet_eligible
+      text payment_option_summary
+      decimal ai_confidence_score
+      enum status
+      timestamp created_at
+      timestamp updated_at
+    }
+    TRIP_PLAN_ITEMS { 
+      int id PK
+      int trip_plan_id FK
+      enum item_type
+      int day_number
+      varchar title
+      text description
+      varchar vendor_source
+      varchar external_reference
+      decimal base_cost
+      decimal service_fee
+      decimal total_cost
+      char currency_code
+      json meta_json
+      int sort_order
+    }
+    TRIP_PLAN_VERSIONS { 
+      int id PK
+      int trip_plan_id FK
+      int version_no
+      text change_summary
+      json full_plan_json
+      enum created_by_type
+      int created_by_id
+      timestamp created_at
+    }
+    TRIP_PLAN_SAVED_OPTIONS { 
+      int id PK
+      int trip_plan_id FK
+      int trip_plan_item_id FK
+      varchar option_type
+      varchar option_title
+      decimal option_cost
+      char currency_code
+      varchar source_name
+      json meta_json
+    }
+    TRIP_REQUESTS ||--o{ TRIP_PLANS : "generates"
+    TRIP_PLANS ||--o{ TRIP_PLAN_ITEMS : "contains"
+    TRIP_PLANS ||--o{ TRIP_PLAN_VERSIONS : "versioned by"
+    TRIP_PLAN_ITEMS ||--o{ TRIP_PLAN_SAVED_OPTIONS : "alternatives"`,
+
+  'Bookings': `erDiagram
+    BOOKINGS { 
+      int id PK
+      varchar booking_number
+      int user_id FK
+      int package_id FK
+      int trip_plan_id FK
+      int agent_profile_id FK
+      enum booking_type
+      enum booking_status
+      date travel_start_date
+      date travel_end_date
+      int traveler_count
+      decimal subtotal_amount
+      decimal service_fee_amount
+      decimal tax_amount
+      decimal discount_amount
+      decimal total_amount
+      char currency_code
+      enum payment_status
+      enum booking_source
+      timestamp created_at
+      timestamp updated_at
+    }
+    BOOKING_TRAVELERS { 
+      int id PK
+      int booking_id FK
+      varchar full_name
+      date date_of_birth
+      varchar gender
+      varchar passport_number_encrypted
+      varchar nationality
+      text special_requests
+      timestamp created_at
+    }
+    BOOKING_ITEMS { 
+      int id PK
+      int booking_id FK
+      varchar item_type
+      varchar reference_type
+      int reference_id
+      varchar title
+      varchar vendor_name
+      int quantity
+      decimal unit_price
+      decimal line_total
+      char currency_code
+      enum status
+    }
+    CUSTOM_QUOTES { 
+      int id PK
+      int user_id FK
+      int agent_profile_id FK
+      int trip_request_id FK
+      varchar quote_title
+      text requirements_text
+      decimal quoted_amount
+      char currency_code
+      enum quote_status
+      timestamp valid_until
+      timestamp created_at
+      timestamp updated_at
+    }
+    BOOKINGS ||--o{ BOOKING_TRAVELERS : "includes"
+    BOOKINGS ||--o{ BOOKING_ITEMS : "itemised as"
+    TRIP_REQUESTS ||--o{ CUSTOM_QUOTES : "triggers"`,
+
+  'Wallet & Pay': `erDiagram
+    WALLETS { 
+      int id PK
+      int user_id FK
+      varchar wallet_number
+      char currency_code
+      decimal available_balance
+      decimal locked_balance
+      enum status
+      timestamp created_at
+      timestamp updated_at
+    }
+    WALLET_TRANSACTIONS { 
+      int id PK
+      int wallet_id FK
+      enum transaction_type
+      enum reference_type
+      int reference_id
+      decimal amount
+      char currency_code
+      enum direction
+      enum status
+      text description
+      timestamp created_at
+      timestamp processed_at
+    }
+    WALLET_TOPUPS { 
+      int id PK
+      int wallet_id FK
+      string payment_gateway
+      string gateway_reference
+      decimal amount
+      char currency_code
+      enum status
+      timestamp created_at
+    }
+    WALLET_REFUNDS { 
+      int id PK
+      int wallet_transaction_id FK
+      int booking_id FK
+      text refund_reason
+      enum refund_status
+      timestamp processed_at
+    }
+    WALLETS ||--o{ WALLET_TRANSACTIONS : "records"
+    WALLETS ||--o{ WALLET_TOPUPS : "topped up via"
+    WALLET_TRANSACTIONS ||--o| WALLET_REFUNDS : "refunded by"`,
+
+  'Payments': `erDiagram
+    PAYMENTS { 
+      int id PK
+      int user_id FK
+      int booking_id FK
+      int wallet_id FK
+      enum payment_method
+      varchar gateway_name
+      varchar gateway_transaction_ref
+      decimal amount
+      char currency_code
+      enum payment_status
+      timestamp paid_at
+      timestamp created_at
+    }
+    PAYMENT_SPLITS { 
+      int id PK
+      int payment_id FK
+      enum split_type
+      decimal amount
+      char currency_code
+      date due_date
+      enum status
+    }
+    PAYMENTS ||--o{ PAYMENT_SPLITS : "split into"`,
+
+  'BNPL': `erDiagram
+    FINANCE_PROVIDERS { 
+      int id PK
+      varchar provider_name
+      varchar provider_type
+      varchar country
+      enum api_status
+      timestamp created_at
+    }
+    FINANCE_APPLICATIONS { 
+      int id PK
+      int user_id FK
+      int booking_id FK
+      int provider_id FK
+      decimal requested_amount
+      decimal approved_amount
+      char currency_code
+      enum application_status
+      varchar provider_reference
+      timestamp created_at
+      timestamp updated_at
+    }
+    FINANCE_REPAYMENT_SCHEDULES { 
+      int id PK
+      int finance_application_id FK
+      int installment_no
+      date due_date
+      decimal amount
+      enum status
+      timestamp paid_at
+    }
+    FINANCE_PROVIDERS ||--o{ FINANCE_APPLICATIONS : "processes"
+    FINANCE_APPLICATIONS ||--o{ FINANCE_REPAYMENT_SCHEDULES : "schedules"`,
+
+  'Content': `erDiagram
+    BLOG_CATEGORIES { 
+      int id PK
+      varchar name
+      varchar slug
+      enum status
+    }
+    BLOGS { 
+      int id PK
+      int author_user_id FK
+      int category_id FK
+      int destination_id FK
+      varchar title
+      varchar slug
+      text excerpt
+      text content
+      varchar featured_image
+      varchar seo_title
+      text seo_description
+      enum status
+      timestamp published_at
+      timestamp created_at
+      timestamp updated_at
+    }
+    BLOG_TAGS { 
+      int id PK
+      int blog_id FK
+      varchar tag_name
+    }
+    BLOG_CTA_LINKS { 
+      int id PK
+      int blog_id FK
+      enum cta_type
+      int reference_id
+      varchar button_text
+      int sort_order
+    }
+    BLOG_CATEGORIES ||--o{ BLOGS : "categorises"
+    BLOGS ||--o{ BLOG_TAGS : "tagged"
+    BLOGS ||--o{ BLOG_CTA_LINKS : "links to"`,
+
+  'Reviews & Ratings': `erDiagram
+    REVIEWS { 
+      int id PK
+      int reviewer_user_id FK
+      enum review_type
+      int reference_id
+      decimal rating
+      varchar title
+      text comment
+      enum status
+      timestamp created_at
+    }
+    REVIEW_MEDIA { 
+      int id PK
+      int review_id FK
+      varchar file_url
+      varchar media_type
+    }
+    REVIEWS ||--o{ REVIEW_MEDIA : "has"`,
+
+  'Comms & Admin': `erDiagram
+    NOTIFICATIONS { 
+      int id PK
+      int user_id FK
+      varchar notification_type
+      varchar title
+      text message
+      varchar reference_type
+      int reference_id
+      boolean is_read
+      timestamp created_at
+    }
+    EMAIL_LOGS {
+      int id PK
+      int user_id FK
+      varchar email_type
+      varchar to_email
+      varchar subject
+      enum status
+      timestamp sent_at
+      json meta_json
+    }
+    CHAT_THREADS { 
+      int id PK
+      int traveler_user_id FK
+      int agent_user_id FK
+      int booking_id FK
+      int trip_request_id FK
+      enum status
+      timestamp created_at
+    }
+    CHAT_MESSAGES { 
+      int id PK
+      int thread_id FK
+      int sender_user_id FK
+      text message_text
+      varchar attachment_url
+      timestamp read_at
+      timestamp created_at
+    }
+    ADMIN_ACTIONS { 
+      int id PK
+      int admin_user_id FK
+      varchar action_type
+      varchar reference_table
+      int reference_id
+      text notes
+      timestamp created_at
+    }
+    AUDIT_LOGS { 
+      int id PK
+      int user_id FK
+      varchar event_name
+      varchar entity_type
+      int entity_id
+      json old_values_json
+      json new_values_json
+      varchar ip_address
+      text user_agent
+      timestamp created_at
+    }
+    SYSTEM_SETTINGS { 
+      int id PK
+      varchar setting_key
+      text setting_value
+      varchar setting_group
+      timestamp updated_at
+    }
+    CHAT_THREADS ||--o{ CHAT_MESSAGES : "contains"`,
+};
+
+// ── Render functions ──────────────────────────────────────────
+function buildDomainGrid() {
+  const grid = document.getElementById('domain-grid');
+  const navList = document.getElementById('domain-nav-list');
+  DOMAINS.forEach(d => {
+    const card = document.createElement('div');
+    card.className = `domain-card ${d.id}`;
+    card.innerHTML = `
+      <div class="dc-top">
+        <span class="dc-icon">${d.icon}</span>
+        <div>
+          <div class="dc-name">${d.name}</div>
+          <div class="dc-tables">${d.tables.length} table${d.tables.length>1?'s':''}</div>
+        </div>
+      </div>
+      <div class="dc-desc">${d.desc}</div>
+      <div class="dc-pills">${d.tables.map(t=>`<span class="dc-pill">${t.name}</span>`).join('')}</div>`;
+    card.onclick = () => { switchTab('schema'); scrollToDomain(d.name); };
+    grid.appendChild(card);
+
+    const nav = document.createElement('div');
+    nav.className = `nav-item ${d.id}`;
+    nav.dataset.domain = d.name;
+    nav.innerHTML = `<span class="nav-dot" style="background:var(--dc)"></span><span class="nav-label">${d.name}</span><span class="nav-count">${d.tables.length}</span>`;
+    nav.onclick = () => { switchTab('schema'); scrollToDomain(d.name); };
+    navList.appendChild(nav);
+  });
+}
+
+function buildSchemaContent() {
+  const wrap = document.getElementById('schema-content');
+  DOMAINS.forEach(d => {
+    const sec = document.createElement('div');
+    sec.className = `domain-section ${d.id}`;
+    sec.id = `domain-${d.name.replace(/\s+/g,'-')}`;
+    sec.innerHTML = `
+      <div class="domain-section-header">
+        <span class="ds-icon">${d.icon}</span>
+        <span class="ds-name">${d.name}</span>
+        <span class="ds-count">${d.tables.length} tables</span>
+      </div>
+      <div class="tables-grid">${d.tables.map(t => buildTableCard(t)).join('')}</div>`;
+    wrap.appendChild(sec);
+  });
+}
+
+function buildTableCard(t) {
+  const rows = t.fields.map(f => {
+    const badges = [
+      f.pk ? '<span class="badge-pk">PK</span>' : '',
+      f.fk ? '<span class="badge-fk">FK</span>' : '',
+      f.json ? '<span class="badge-json">JSON</span>' : '',
+      f.enc ? '<span class="badge-enc">ENC</span>' : '',
+    ].join('');
+    return `<tr>
+      <td class="col-name">${f.col}${badges}</td>
+      <td class="col-type">${f.type}</td>
+      <td class="col-desc">${f.desc}</td>
+    </tr>`;
+  }).join('');
+
+  return `<div class="table-card" onclick="toggleTable(this)">
+    <div class="table-card-header">
+      <span class="tc-name">${t.name}</span>
+      <span class="tc-desc">${t.desc}</span>
+      <span class="tc-toggle">▼</span>
+    </div>
+    <table class="fields-table">
+      <thead><tr><th>Column</th><th>Type / Constraint</th><th>Description</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  </div>`;
+}
+
+function buildRelTable() {
+  const tbl = document.getElementById('rel-table');
+  tbl.innerHTML = `<thead><tr><th>From</th><th>To</th><th>Cardinality</th><th>Description</th></tr></thead>`;
+  const tbody = document.createElement('tbody');
+  RELATIONSHIPS.forEach(([from,to,c1,c2,label]) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td class="tbl-name">${from}</td><td class="tbl-name2">${to}</td><td class="rel-cardinality">${c1} → ${c2}</td><td class="rel-label">${label}</td>`;
+    tbody.appendChild(tr);
+  });
+  tbl.appendChild(tbody);
+}
+
+function buildDiagramTabs() {
+  const wrap = document.getElementById('diagram-tabs');
+  Object.keys(MERMAID_DOMAINS).forEach((name, i) => {
+    const btn = document.createElement('button');
+    btn.className = `tab-btn${i === 0 ? ' active' : ''}`;
+    btn.textContent = name;
+    btn.onclick = (e) => {
+      wrap.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderDiagram(name);
+    };
+    wrap.appendChild(btn);
+  });
+}
+
+async function renderAllDiagrams() {
+  const container = document.getElementById('mermaid-container');
+  
+  // Show global loading state
+  container.innerHTML = `<div style="display:flex;align-items:center;gap:10px;color:var(--text2);font-family:var(--mono);font-size:12px;padding:20px"><span class="loading-ring"></span> Generating all domain diagrams...</div>`;
+
+  if (!window._mermaidReady) return; 
+
+  const keys = Object.keys(MERMAID_DOMAINS);
+  container.innerHTML = ''; // Clear container for fresh render
+
+  for (const name of keys) {
+    // 1. Create a wrapper section for each domain
+    const section = document.createElement('div');
+    section.style.marginBottom = '60px';
+    section.style.borderBottom = '1px solid var(--border)';
+    section.style.paddingBottom = '40px';
+
+    // 2. Add a domain title
+    const title = document.createElement('h3');
+    title.style.color = 'var(--accent)';
+    title.style.fontFamily = 'var(--mono)';
+    title.style.fontSize = '14px';
+    title.style.marginBottom = '20px';
+    title.style.textTransform = 'uppercase';
+    title.style.letterSpacing = '0.1em';
+    title.textContent = `>> Domain: ${name}`;
+    section.appendChild(title);
+
+    // 3. Create placeholder for the SVG
+    const svgWrapper = document.createElement('div');
+    svgWrapper.id = `svg-container-${name.replace(/\s+/g, '-')}`;
+    section.appendChild(svgWrapper);
+    container.appendChild(section);
+
+    try {
+      // 4. Render the individual Mermaid diagram
+      // We use a random ID for each render to avoid Mermaid naming collisions
+      const uniqueId = 'erd-' + Math.random().toString(36).substring(2, 9);
+      const { svg } = await window._mermaid.render(uniqueId, MERMAID_DOMAINS[name]);
+      
+      svgWrapper.innerHTML = svg;
+      const svgEl = svgWrapper.querySelector('svg');
+      if (svgEl) { 
+        svgEl.style.width = '100%'; 
+        svgEl.style.maxWidth = '100%'; 
+        svgEl.style.height = 'auto';
+      }
+
+      // 5. Apply your custom "Round entity corners" logic to each rendered SVG
+      svgWrapper.querySelectorAll('.node').forEach(node => {
+        const p = node.querySelector('path[d]');
+        if (!p) return;
+        const nums = p.getAttribute('d').match(/-?[\d.]+/g)?.map(Number);
+        if (!nums || nums.length < 8) return;
+        const xs=[nums[0],nums[2],nums[4],nums[6]], ys=[nums[1],nums[3],nums[5],nums[7]];
+        const x=Math.min(...xs), y=Math.min(...ys), w=Math.max(...xs)-x, h=Math.max(...ys)-y;
+        const r=document.createElementNS('http://www.w3.org/2000/svg','rect');
+        r.setAttribute('x',x); r.setAttribute('y',y); r.setAttribute('width',w); r.setAttribute('height',h); r.setAttribute('rx','6');
+        for(const a of['fill','stroke','stroke-width','class','style']){
+          if(p.hasAttribute(a)) r.setAttribute(a, p.getAttribute(a));
+        }
+        p.replaceWith(r);
+      });
+    } catch (e) {
+      svgWrapper.innerHTML = `<div style="color:var(--danger);font-family:var(--mono);font-size:12px;padding:10px">Error rendering ${name}: ${e.message}</div>`;
+    }
+  }
+}
+
+async function renderDiagram(domainName) {
+  const container = document.getElementById('mermaid-container');
+  container.innerHTML = `<div style="display:flex;align-items:center;gap:10px;color:var(--text2);font-family:var(--mono);font-size:12px"><span class="loading-ring"></span> Rendering diagram…</div>`;
+
+  if (!window._mermaidReady) { window._pendingDiagram = domainName; return; }
+
+  try {
+    const { svg } = await window._mermaid.render('erd-'+Date.now(), MERMAID_DOMAINS[domainName]);
+    container.innerHTML = svg;
+    const svgEl = container.querySelector('svg');
+    if (svgEl) { svgEl.style.width='100%'; svgEl.style.maxWidth='100%'; }
+
+    // Round entity corners
+    container.querySelectorAll('.node').forEach(node => {
+      const p = node.querySelector('path[d]');
+      if (!p) return;
+      const nums = p.getAttribute('d').match(/-?[\d.]+/g)?.map(Number);
+      if (!nums || nums.length < 8) return;
+      const xs=[nums[0],nums[2],nums[4],nums[6]], ys=[nums[1],nums[3],nums[5],nums[7]];
+      const x=Math.min(...xs), y=Math.min(...ys), w=Math.max(...xs)-x, h=Math.max(...ys)-y;
+      const r=document.createElementNS('http://www.w3.org/2000/svg','rect');
+      r.setAttribute('x',x);r.setAttribute('y',y);r.setAttribute('width',w);r.setAttribute('height',h);r.setAttribute('rx','6');
+      for(const a of['fill','stroke','stroke-width','class','style']){if(p.hasAttribute(a))r.setAttribute(a,p.getAttribute(a));}
+      p.replaceWith(r);
+    });
+  } catch(e) {
+    container.innerHTML = `<div style="color:var(--danger);font-family:var(--mono);font-size:12px;padding:16px">Error rendering diagram. ${e.message}</div>`;
+  }
+}
+
+function switchTab(tab) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn[data-tab]').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.nav-item:not([data-domain])').forEach(n => n.classList.remove('active'));
+
+  document.getElementById(`panel-${tab}`).classList.add('active');
+  document.querySelector(`.tab-btn[data-tab="${tab}"]`)?.classList.add('active');
+  
+  // LOGIC CHANGE HERE:
+  if (tab === 'diagram') {
+    renderAllDiagrams();
+  }
+}
+
+
+function toggleTable(card) {
+  card.classList.toggle('open');
+}
+
+function scrollToDomain(name) {
+  setTimeout(() => {
+    const el = document.getElementById(`domain-${name.replace(/\s+/g,'-')}`);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 50);
+}
+
+function filterNav(q) {
+  const lq = q.toLowerCase();
+  document.querySelectorAll('.nav-item[data-domain]').forEach(n => {
+    n.style.display = n.dataset.domain.toLowerCase().includes(lq) ? '' : 'none';
+  });
+  if (!q) {
+    document.querySelectorAll('#schema-content .table-card').forEach(c => c.style.display = '');
+    document.querySelectorAll('#schema-content .domain-section').forEach(s => s.style.display = '');
+    return;
+  }
+  // Filter schema tables too
+  if (document.getElementById('panel-schema').classList.contains('active')) {
+    document.querySelectorAll('#schema-content .table-card').forEach(c => {
+      const name = c.querySelector('.tc-name')?.textContent || '';
+      c.style.display = name.toLowerCase().includes(lq) ? '' : 'none';
+    });
+    document.querySelectorAll('#schema-content .domain-section').forEach(s => {
+      const visible = [...s.querySelectorAll('.table-card')].some(c => c.style.display !== 'none');
+      s.style.display = visible ? '' : 'none';
+    });
+  }
+}
+
+// Scroll-to-top
+window.addEventListener('scroll', () => {
+  document.getElementById('scrollTop').classList.toggle('visible', window.scrollY > 300);
+});
+
+// Init
+buildDomainGrid();
+buildSchemaContent();
+buildRelTable();
+buildDiagramTabs();
+
+</script>
+
+ </body></html>
